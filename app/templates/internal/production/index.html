@@ -1,0 +1,209 @@
+{% extends "internal/base.html" %} {% block title %}Control de Producción{% endblock %} {% block content %}
+<div class="max-[95rem] mx-auto">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="space-y-2 mb-6">
+        {% for category, message in messages %}
+        <div class="rounded-2xl border px-5 py-4 text-sm font-semibold flex items-start gap-3
+            {% if category == 'danger' %}border-red-200 bg-red-50 text-red-700
+            {% elif category == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-700
+            {% elif category == 'warning' %}border-amber-200 bg-amber-50 text-amber-700
+            {% else %}border-slate-200 bg-slate-50 text-slate-700{% endif %}">
+            <span class="mt-0.5 shrink-0">
+                {% if category == 'danger' %}⛔{% elif category == 'success' %}✅{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+            </span>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
+        <div class="flex items-center space-x-5">
+            <div class="p-4 bg-primary text-white rounded-2xl shadow-lg shadow-primary/20">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-3xl font-black text-[#1a202c] tracking-tight">Control de Producción</h1>
+                <p class="text-gray-400 text-sm font-medium italic">Gestión de tareas diarias y prioridades de pastelería</p>
+            </div>
+        </div>
+        {% if current_user.is_seller() %}
+        <a href="{{ url_for('production.create') }}" class="bg-primary text-white px-8 py-4 rounded-full font-black text-sm shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform flex items-center cursor-pointer">
+            <span class="mr-2 text-xl font-light">+</span> Nueva Orden
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Columna Alta -->
+        <div class="space-y-6">
+            <div class="flex items-center justify-between px-2">
+                <div class="flex items-center space-x-3">
+                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                    <h2 class="uppercase tracking-widest text-[11px] font-black text-gray-400">Prioridad Alta</h2>
+                </div>
+                <span class="px-3 py-1 bg-gray-100 text-gray-400 rounded-full text-[10px] font-black">{{ tasks_alta|length }} Tarea{% if tasks_alta|length != 1 %}s{% endif %}</span>
+            </div>
+            <div class="space-y-4">
+                {% if tasks_alta %}
+                {% for task in tasks_alta %}
+                {% set estado_class = {
+                    'Pendiente': 'bg-orange-50 text-orange-400',
+                    'En Horno': 'bg-blue-50 text-blue-400',
+                    'Decorando': 'bg-purple-50 text-purple-400',
+                    'Listo': 'bg-green-50 text-green-400'
+                } %}
+                <div class="bg-white p-6 rounded-4xl shadow-sm border border-gray-100 hover:shadow-md transition-all group">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="text-[9px] font-black text-primary bg-primary/5 px-2 py-1 rounded-md uppercase">PRD-{{ '%03d'|format(task.id) }}</span>
+                        <div class="flex items-center text-gray-300 text-[10px] font-bold">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            {{ task.fecha_limite.strftime('%I:%M %p') if task.fecha_limite else '—' }}
+                        </div>
+                    </div>
+                    <h3 class="text-[#2d3748] font-bold text-lg leading-tight mb-1">{{ task.receta.product.nombre_producto if task.receta and task.receta.product else '—' }}</h3>
+                    <p class="text-gray-400 text-xs font-medium italic mb-5">{{ task.receta.nombre_variante if task.receta else '' }} · {{ task.receta.cantidad_producida|int if task.receta else 0 }} uds.</p>
+                    <div class="flex items-center justify-between mt-auto">
+                        <div class="flex items-center space-x-2 px-3 py-1.5 rounded-full text-[10px] font-bold {{ estado_class.get(task.estado, 'bg-gray-50 text-gray-400') }}">
+                            <div class="w-1.5 h-1.5 rounded-full bg-current"></div>
+                            <span>{{ task.estado }}</span>
+                        </div>
+                        <div class="flex space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {% if current_user.is_chef() %}
+                            <a href="{{ url_for('production.view', id=task.id) }}" class="cursor-pointer" title="Ver detalles">📖</a>
+                            <a href="{{ url_for('production.status', id=task.id) }}" class="cursor-pointer" title="Cambiar estado">⏳</a>
+                            {% endif %}
+                            {% if current_user.is_seller() %}
+                            <a href="{{ url_for('production.edit', id=task.id) }}" class="cursor-pointer" title="Editar">✎</a>
+                            <a href="{{ url_for('production.delete', id=task.id) }}" class="cursor-pointer" title="Eliminar">🗑</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="bg-white p-8 rounded-4xl border border-dashed border-gray-200 text-center text-gray-300 text-sm font-medium">
+                    Sin órdenes de alta prioridad
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Columna Media -->
+        <div class="space-y-6">
+            <div class="flex items-center justify-between px-2">
+                <div class="flex items-center space-x-3">
+                    <div class="w-3 h-3 rounded-full bg-orange-400"></div>
+                    <h2 class="uppercase tracking-widest text-[11px] font-black text-gray-400">Prioridad Media</h2>
+                </div>
+                <span class="px-3 py-1 bg-gray-100 text-gray-400 rounded-full text-[10px] font-black">{{ tasks_media|length }} Tarea{% if tasks_media|length != 1 %}s{% endif %}</span>
+            </div>
+            <div class="space-y-4">
+                {% if tasks_media %}
+                {% for task in tasks_media %}
+                {% set estado_class = {
+                    'Pendiente': 'bg-orange-50 text-orange-400',
+                    'En Horno': 'bg-blue-50 text-blue-400',
+                    'Decorando': 'bg-purple-50 text-purple-400',
+                    'Listo': 'bg-green-50 text-green-400'
+                } %}
+                <div class="bg-white p-6 rounded-4xl shadow-sm border border-gray-100 hover:shadow-md transition-all group">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="text-[9px] font-black text-primary bg-primary/5 px-2 py-1 rounded-md uppercase">PRD-{{ '%03d'|format(task.id) }}</span>
+                        <div class="flex items-center text-gray-300 text-[10px] font-bold">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            {{ task.fecha_limite.strftime('%I:%M %p') if task.fecha_limite else '—' }}
+                        </div>
+                    </div>
+                    <h3 class="text-[#2d3748] font-bold text-lg leading-tight mb-1">{{ task.receta.product.nombre_producto if task.receta and task.receta.product else '—' }}</h3>
+                    <p class="text-gray-400 text-xs font-medium italic mb-5">{{ task.receta.nombre_variante if task.receta else '' }} · {{ task.receta.cantidad_producida|int if task.receta else 0 }} uds.</p>
+                    <div class="flex items-center justify-between mt-auto">
+                        <div class="flex items-center space-x-2 px-3 py-1.5 rounded-full text-[10px] font-bold {{ estado_class.get(task.estado, 'bg-gray-50 text-gray-400') }}">
+                            <div class="w-1.5 h-1.5 rounded-full bg-current"></div>
+                            <span>{{ task.estado }}</span>
+                        </div>
+                        <div class="flex space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {% if current_user.is_chef() %}
+                            <a href="{{ url_for('production.view', id=task.id) }}" class="cursor-pointer" title="Ver detalles">📖</a>
+                            <a href="{{ url_for('production.status', id=task.id) }}" class="cursor-pointer" title="Cambiar estado">⏳</a>
+                            {% endif %}
+                            {% if current_user.is_seller() %}
+                            <a href="{{ url_for('production.edit', id=task.id) }}" class="cursor-pointer" title="Editar">✎</a>
+                            <a href="{{ url_for('production.delete', id=task.id) }}" class="cursor-pointer" title="Eliminar">🗑</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="bg-white p-8 rounded-4xl border border-dashed border-gray-200 text-center text-gray-300 text-sm font-medium">
+                    Sin órdenes de prioridad media
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Columna Baja -->
+        <div class="space-y-6">
+            <div class="flex items-center justify-between px-2">
+                <div class="flex items-center space-x-3">
+                    <div class="w-3 h-3 rounded-full bg-blue-400"></div>
+                    <h2 class="uppercase tracking-widest text-[11px] font-black text-gray-400">Prioridad Baja</h2>
+                </div>
+                <span class="px-3 py-1 bg-gray-100 text-gray-400 rounded-full text-[10px] font-black">{{ tasks_baja|length }} Tarea{% if tasks_baja|length != 1 %}s{% endif %}</span>
+            </div>
+            <div class="space-y-4">
+                {% if tasks_baja %}
+                {% for task in tasks_baja %}
+                {% set estado_class = {
+                    'Pendiente': 'bg-orange-50 text-orange-400',
+                    'En Horno': 'bg-blue-50 text-blue-400',
+                    'Decorando': 'bg-purple-50 text-purple-400',
+                    'Listo': 'bg-green-50 text-green-400'
+                } %}
+                <div class="bg-white p-6 rounded-4xl shadow-sm border border-gray-100 hover:shadow-md transition-all group">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="text-[9px] font-black text-primary bg-primary/5 px-2 py-1 rounded-md uppercase">PRD-{{ '%03d'|format(task.id) }}</span>
+                        <div class="flex items-center text-gray-300 text-[10px] font-bold">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            {{ task.fecha_limite.strftime('%I:%M %p') if task.fecha_limite else '—' }}
+                        </div>
+                    </div>
+                    <h3 class="text-[#2d3748] font-bold text-lg leading-tight mb-1">{{ task.receta.product.nombre_producto if task.receta and task.receta.product else '—' }}</h3>
+                    <p class="text-gray-400 text-xs font-medium italic mb-5">{{ task.receta.nombre_variante if task.receta else '' }} · {{ task.receta.cantidad_producida|int if task.receta else 0 }} uds.</p>
+                    <div class="flex items-center justify-between mt-auto">
+                        <div class="flex items-center space-x-2 px-3 py-1.5 rounded-full text-[10px] font-bold {{ estado_class.get(task.estado, 'bg-gray-50 text-gray-400') }}">
+                            <div class="w-1.5 h-1.5 rounded-full bg-current"></div>
+                            <span>{{ task.estado }}</span>
+                        </div>
+                        <div class="flex space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {% if current_user.is_chef() %}
+                            <a href="{{ url_for('production.view', id=task.id) }}" class="cursor-pointer" title="Ver detalles">📖</a>
+                            <a href="{{ url_for('production.status', id=task.id) }}" class="cursor-pointer" title="Cambiar estado">⏳</a>
+                            {% endif %}
+                            {% if current_user.is_seller() %}
+                            <a href="{{ url_for('production.edit', id=task.id) }}" class="cursor-pointer" title="Editar">✎</a>
+                            <a href="{{ url_for('production.delete', id=task.id) }}" class="cursor-pointer" title="Eliminar">🗑</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="bg-white p-8 rounded-4xl border border-dashed border-gray-200 text-center text-gray-300 text-sm font-medium">
+                    Sin órdenes de baja prioridad
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

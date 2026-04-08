@@ -1,0 +1,152 @@
+{% extends "internal/base.html" %}
+
+{% block title %}Modificar Cliente{% endblock %}
+
+{% block content %}
+
+<div class="mb-2">
+    <a class="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors mb-6 group"
+        href="{{ url_for('customers.index') }}">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+            class="size-6 group-hover:-translate-x-1 transition-transform">
+            <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+        </svg>
+        <span class="font-semibold text-sm">Volver a Clientes</span>
+    </a>
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2 mb-1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                    class="size-6 text-primary">
+                    <path
+                        d="M804-282q17 9 30-4t4-30l-58-108-42 108 66 34Zm-200-38h48l96-238q3-8-1.5-13.5T736-580l-80-32q-9-3-17.5 2T628-596l-24 276Zm-296 0h48l-24-276q-2-11-10.5-15t-17.5-1l-80 32q-8 3-11.5 8.5T212-558l96 238Zm-152 38 66-34-42-108-58 108q-9 17 4 30t30 4Zm280-38h88l30-338q2-9-4.5-15.5T534-680H426q-8 0-14.5 6.5T406-658l30 338ZM138-200q-42 0-70-31.5T40-306q0-12 3.5-23.5T52-352l88-168q-14-40 1-79t53-55l80-32q14-5 28-7t28 1q14-29 39-48.5t57-19.5h108q32 0 57 19.5t39 48.5q14-2 28-.5t28 6.5l80 32q40 16 56 55t-2 77l88 168q6 11 9 23t3 25q0 45-30.5 75.5T814-200q-11 0-22-2.5t-22-7.5l-62-30H250l-56 30q-13 7-27.5 8.5T138-200Zm342-280Z" />
+                </svg>
+                <span class="text-xs font-bold tracking-widest uppercase text-primary/80">Maison Glacé</span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-extrabold leading-tight tracking-tight">
+                Modificar Cliente
+            </h1>
+        </div>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="mb-6 space-y-2">
+    {% for category, message in messages %}
+    <div
+        class="rounded-xl border px-4 py-3 text-sm font-semibold {% if category == 'error' %}border-red-200 bg-red-50 text-red-700{% elif category == 'success' %}border-green-200 bg-green-50 text-green-700{% else %}border-slate-200 bg-slate-50 text-slate-700{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<form class="grid grid-cols-1 lg:grid-cols-3 gap-6" method="POST"
+    action="{{ url_for('customers.edit', customer_id=customer.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="lg:col-span-2 flex flex-col gap-6">
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-primary/5">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                        <path d="M0 0h24v24H0V0z" fill="none" />
+                        <path
+                            d="M12 6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2m0 10c2.7 0 5.8 1.29 6 2H6c.23-.72 3.31-2 6-2m0-12C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 10c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                    </svg>
+                </div>
+                <h2 class="text-slate-900 text-xl font-bold">Datos de Contacto
+                </h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-slate-700">Nombre
+                        Completo</label>
+                    <input
+                        class="rounded-lg border-primary/10 bg-primary/5 focus:ring-2 focus:ring-primary/50 h-11 text-sm px-4 focus-visible:outline-none"
+                        placeholder="Ej: Marcela Proust" type="text" id="nombre_completo" name="nombre_completo"
+                        value="{{ customer.user.nombre_completo if customer and customer.user else '' }}" required />
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-slate-700">Teléfono</label>
+                    <input
+                        class="rounded-lg border-primary/10 bg-primary/5 focus:ring-2 focus:ring-primary/50 h-11 text-sm px-4 focus-visible:outline-none"
+                        placeholder="Ej: 0991234567" type="tel" id="telefono" name="telefono"
+                        value="{{ customer.telefono if customer and customer.telefono else '' }}" required
+                        inputmode="numeric" autocomplete="tel" pattern="\+?[0-9]{7,20}"
+                        oninput="this.value = this.value.replace(/[^0-9+]/g, '').replace(/(?!^)\+/g, '');" />
+                </div>
+                <div class="flex flex-col gap-2 md:col-span-2">
+                    <label class="text-sm font-semibold text-slate-700">Correo
+                        Electrónico</label>
+                    <input
+                        class="rounded-lg border-primary/10 bg-primary/5 focus:ring-2 focus:ring-primary/50 h-11 text-sm px-4 focus-visible:outline-none"
+                        placeholder="m.proust@ejemplo.com" type="email" id="correo_electronico"
+                        name="correo_electronico"
+                        value="{{ customer.user.correo_electronico if customer and customer.user else '' }}" required />
+                </div>
+                <div class="flex flex-col gap-2 md:col-span-2">
+                    <label class="text-sm font-semibold text-slate-700">Dirección
+                        de Despacho</label>
+                    <textarea
+                        class="form-textarea rounded-lg border-primary/10 bg-primary/5 focus:ring-2 focus:ring-primary/50 text-sm p-4 focus-visible:outline-none resize-none h-24"
+                        placeholder="Calle Falsa 123, Depto 402, Santiago" rows="4" id="direccion_despacho"
+                        name="direccion_despacho"
+                        required>{{ customer.direccion_despacho if customer and customer.direccion_despacho else '' }}</textarea>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div class="flex flex-col gap-6">
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-primary/5">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" viewBox="0 0 24 24"
+                        fill="currentColor" class="size-6">
+                        <g>
+                            <path d="M0 0h24v24H0V0z" fill="none" />
+                            <path d="M0 0h24v24H0V0z" fill="none" />
+                        </g>
+                        <g>
+                            <path
+                                d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z" />
+                        </g>
+                    </svg>
+                </div>
+                <h2 class="text-slate-900 text-xl font-bold">Lealtad</h2>
+            </div>
+            <div class="flex flex-col gap-5">
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-slate-700">
+                        Puntos de Lealtad Acumulados
+                    </label>
+                    <input
+                        class="rounded-lg border-primary/10 bg-primary/5 focus:ring-2 focus:ring-primary/50 h-11 text-sm px-4 focus-visible:outline-none"
+                        placeholder="Ej: 1500" type="number" min="0" id="puntos_acumulados" name="puntos_acumulados"
+                        value="{{ customer.puntos_acumulados if customer and customer.puntos_acumulados is not none else 0 }}"
+                        required />
+                </div>
+            </div>
+        </section>
+        <p class="text-xs text-slate-500 font-medium">
+            Nota: este formulario actualiza datos de cliente y usuario, pero no modifica la contraseña.
+        </p>
+        <div class="flex flex-col gap-3">
+            <button type="submit"
+                class="w-full h-12 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/30 hover:bg-primary/90 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                    <path d="M0 0h24v24H0V0z" fill="none" />
+                    <path
+                        d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z" />
+                </svg>
+                Modificar Cliente
+            </button>
+            <a href="{{ url_for('customers.index') }}"
+                class="w-full h-12 bg-transparent text-slate-500 font-bold rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2">
+                Descartar Cambios
+            </a>
+        </div>
+    </div>
+</form>
+{% endblock %}

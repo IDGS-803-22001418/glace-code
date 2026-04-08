@@ -1,0 +1,101 @@
+{% extends 'internal/base.html' %}
+{% block title %}Compras - Detalle{% endblock %}
+
+{% block content %}
+<div class="mb-20">
+    <!-- Back link -->
+    <a href="{{ url_for('purchases.index') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-[#e91e63] mb-4 transition">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        Volver a Compras
+    </a>
+
+    <!-- Title -->
+    <div class="mb-6">
+        <div class="flex items-center space-x-2 mb-1">
+            <svg class="w-5 h-5 text-[#e91e63]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+            <span class="text-xs font-bold text-[#e91e63] uppercase tracking-wider">Maison Glacé</span>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900">Detalle de Compra <span class="text-[#e91e63]">#ORD-{{ '%04d'|format(compra.id) }}</span></h1>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left column -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Proveedor -->
+            <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                <h3 class="flex items-center text-base font-bold text-gray-900 mb-1">
+                    <svg class="w-5 h-5 text-[#e91e63] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg> Proveedor
+                </h3>
+                <p class="text-xs text-gray-400 mb-4">Proveedor asignado a esta orden</p>
+                <div class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-700">
+                    {{ compra.proveedor_nombre }}
+                </div>
+            </div>
+
+            <!-- Fecha -->
+            <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                <h3 class="flex items-center text-base font-bold text-gray-900 mb-1">
+                    <svg class="w-5 h-5 text-[#e91e63] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> Fecha de Orden
+                </h3>
+                <p class="text-sm text-gray-600 mt-3">{{ compra.fecha_orden.strftime('%d/%m/%Y %H:%M') if compra.fecha_orden else 'N/A' }}</p>
+            </div>
+
+            <!-- Productos en la Orden -->
+            <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                <h3 class="text-base font-bold text-gray-900 mb-4">Productos en la Orden</h3>
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-100">
+                            <th class="text-left pb-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Producto</th>
+                            <th class="text-center pb-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider w-24">Cantidad</th>
+                            <th class="text-right pb-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider w-32">Precio Unit.</th>
+                            <th class="text-right pb-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider w-28">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in compra.detalles %}
+                        <tr class="border-b border-gray-50">
+                            <td class="py-3 text-sm font-semibold text-gray-800">{{ d.insumo.nombre_insumo if d.insumo else 'Insumo eliminado' }}</td>
+                            <td class="py-3 text-sm text-gray-600 text-center">{{ d.cantidad }} {{ d.unidad_medida.abreviatura if d.unidad_medida else '' }}</td>
+                            <td class="py-3 text-sm text-gray-600 text-right">${{ '{:,.2f}'.format(d.precio_unitario) }}</td>
+                            <td class="py-3 text-sm font-semibold text-gray-800 text-right">${{ '{:,.2f}'.format(d.cantidad * d.precio_unitario) }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% if not compra.detalles %}
+                        <tr><td colspan="4" class="py-8 text-center text-gray-400 text-sm">No hay productos en esta orden.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right column - Resumen -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm sticky top-24">
+                <h3 class="text-base font-bold text-gray-900 mb-5">Resumen de Orden</h3>
+                <div class="space-y-3 mb-4">
+                    <hr class="border-gray-100">
+                    <div class="flex justify-between">
+                        <span class="text-sm font-bold text-gray-700">Total</span>
+                        <span class="text-2xl font-bold text-gray-900">${{ '{:,.2f}'.format(compra.total) }}</span>
+                    </div>
+                </div>
+
+                <a href="{{ url_for('purchases.editar', id=compra.id) }}" class="w-full flex items-center justify-center space-x-2 bg-primary rounded-2xl text-white py-3 px-6 font-semibold text-sm hover:shadow-lg transition mb-3 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    <span>Editar Compra</span>
+                </a>
+                <a href="{{ url_for('purchases.eliminar', id=compra.id) }}" class="w-full flex items-center justify-center space-x-2 border border-red-200 text-red-500 py-3 px-6 rounded-2xl font-semibold text-sm hover:bg-red-50 transition mb-3 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    <span>Eliminar Compra</span>
+                </a>
+                <a href="{{ url_for('purchases.index') }}" class="w-full flex items-center justify-center space-x-2 text-gray-500 py-2 text-sm font-semibold hover:text-gray-700 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span>Volver al Listado</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Productos{% endblock %}
+
+{% block content %}
+
+<div class="flex min-h-200 w-full">
+    <!-- Left Side: Artistic Photo -->
+    <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary/10">
+        <style>
+            #login-image {
+                background-image: url("{{ url_for('static', filename='images/login-image.png') }}");
+            }
+        </style>
+        <div id="login-image" class="absolute inset-0 bg-cover bg-center"
+            data-alt="Artistic plated gourmet dessert with chocolate and gold leaf">
+        </div>
+        <div class="absolute inset-0 bg-linear-to-t from-slate-900/60 to-transparent"></div>
+        <div class="absolute bottom-12 left-12 right-12 text-white">
+            <h1 class="text-4xl font-bold mb-4">Artesanía en cada detalle</h1>
+            <p class="text-lg opacity-90 max-w-md">Inicia sesión para acceder a tu cuenta y disfrutar de nuestra
+                plataforma.</p>
+        </div>
+    </div>
+    <!-- Right Side: Login Form -->
+    <div class="w-full lg:w-1/2 flex flex-col justify-center items-center px-6 md:px-12 lg:px-24 bg-white">
+        <div class="w-full max-w-md">
+            <!-- Header / Logo -->
+            <div class="flex flex-col items-center mb-10">
+                <div class="text-primary mb-4">
+                    <svg class="w-12 h-12" fill="currentColor" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 4H17.3334V17.3334H30.6666V30.6666H44V44H4V4Z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight">Maison Glacé</h2>
+                <p class="text-slate-500 mt-2 text-sm">Sistema de Gestión Administrativa</p>
+            </div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for category, message in messages %}
+                <div
+                    class="rounded-xl border px-4 py-3 text-sm font-semibold {% if category == 'error' %}border-red-200 bg-red-50 text-red-700{% else %}border-slate-200 bg-slate-50 text-slate-700{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+            <!-- Form -->
+            <form class="space-y-6" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-slate-700">
+                        Correo Electrónico
+                    </label>
+                    <div class="relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                            class="size-6 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                            <path
+                                d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z" />
+                        </svg>
+                        <input id="email" name="email"
+                            class="w-full pl-12 pr-4 h-14 bg-background-light border-none rounded-xl focus:ring-2 focus:ring-primary/50 text-slate-900 transition-all focus-visible:outline-none"
+                            placeholder="usuario@maisonglace.com" required="" type="email" />
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-slate-700">
+                        Contraseña
+                    </label>
+                    <div class="relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                            class="size-6 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                            <path
+                                d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h40v-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm0-80h480v-400H240v400Zm296.5-143.5Q560-327 560-360t-23.5-56.5Q513-440 480-440t-56.5 23.5Q400-393 400-360t23.5 56.5Q447-280 480-280t56.5-23.5ZM360-640h240v-80q0-50-35-85t-85-35q-50 0-85 35t-35 85v80ZM240-160v-400 400Z" />
+                        </svg>
+                        <input id="password" name="password"
+                            class="w-full pl-12 pr-12 h-14 bg-background-light border-none rounded-xl focus:ring-2 focus:ring-primary/50 text-slate-900 transition-all focus-visible:outline-none"
+                            placeholder="••••••••" required="" type="password" />
+                        <button id="toggle-password" aria-label="Mostrar contraseña" aria-pressed="false"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors cursor-pointer"
+                            type="button">
+                            <svg id="icon-eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"
+                                fill="currentColor" class="size-6">
+                                <path
+                                    d="M607.5-372.5Q660-425 660-500t-52.5-127.5Q555-680 480-680t-127.5 52.5Q300-575 300-500t52.5 127.5Q405-320 480-320t127.5-52.5Zm-204-51Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM214-281.5Q94-363 40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200q-146 0-266-81.5ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z" />
+                            </svg>
+                            <svg id="icon-eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"
+                                fill="currentColor" class="size-6 hidden">
+                                <path
+                                    d="m644-428-58-58q9-24 6-48t-18-44q-20-20-44-23t-48 6l-58-58q41-18 83.5-13.5T582-640q38 38 42.5 80.5T644-428Zm126 126-56-56q31-23 58.5-53T832-500q-50-101-144.5-160.5T480-720q-46 0-89 10.5T312-680l-58-58q52-31 109-46.5T480-800q146 0 266 81.5T920-500q-23 59-60.5 109.5T770-302Zm6 230L636-212q-35 7-72.5 9.5T480-200q-146 0-266-81.5T40-500q21-53 55.5-99.5T177-684L56-806l57-56 720 720-57 56ZM240-620q-30 22-55.5 52T128-500q50 101 144.5 160.5T480-280q30 0 58.5-4.5T593-298l-69-70q-11 4-22 6t-22 2q-66 0-113-47t-47-113q0-11 2-22t6-22l-88-88Zm170 170Z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <button
+                    class="w-full h-14 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 group cursor-pointer"
+                    type="submit">
+                    <span>Iniciar Sesión</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-6">
+                        <path
+                            d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z" />
+                    </svg>
+                </button>
+            </form>
+            <!-- Footer Links -->
+            <div class="pt-8 text-center">
+                <p class="text-sm text-slate-500">
+                    ¿No tienes una cuenta?
+                    <a class="text-primary font-semibold hover:underline"
+                        href="{{ url_for('auth.register') }}">Regístrate aquí</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const passwordInput = document.getElementById('password');
+    const togglePasswordButton = document.getElementById('toggle-password');
+    const openEyeIcon = document.getElementById('icon-eye-open');
+    const closedEyeIcon = document.getElementById('icon-eye-closed');
+
+    if (passwordInput && togglePasswordButton && openEyeIcon && closedEyeIcon) {
+        togglePasswordButton.addEventListener('click', () => {
+            const showPassword = passwordInput.type === 'password';
+            passwordInput.type = showPassword ? 'text' : 'password';
+            openEyeIcon.classList.toggle('hidden', showPassword);
+            closedEyeIcon.classList.toggle('hidden', !showPassword);
+            togglePasswordButton.setAttribute('aria-pressed', String(showPassword));
+            togglePasswordButton.setAttribute('aria-label', showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña');
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,198 @@
+{% extends "internal/base.html" %}
+
+{% block title %}Productos{% endblock %}
+
+{% block content %}
+
+<header
+    class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-solid border-primary/10 pb-6 mb-6">
+    <div class="flex flex-col gap-1">
+        <div class="flex items-center gap-3">
+            <div class="flex items-center justify-center size-10 rounded-lg bg-primary text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-6">
+                    <path
+                        d="M280-80q-33 0-56.5-23.5T200-160q0-33 23.5-56.5T280-240q33 0 56.5 23.5T360-160q0 33-23.5 56.5T280-80Zm400 0q-33 0-56.5-23.5T600-160q0-33 23.5-56.5T680-240q33 0 56.5 23.5T760-160q0 33-23.5 56.5T680-80ZM246-720l96 200h280l110-200H246Zm-38-80h590q23 0 35 20.5t1 41.5L692-482q-11 20-29.5 31T622-440H324l-44 80h480v80H280q-45 0-68-39.5t-2-78.5l54-98-144-304H40v-80h130l38 80Zm134 280h280-280Z" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold tracking-tight">Productos</h1>
+        </div>
+        <p class="text-slate-500 text-sm">
+            Gestión del catálogo de productos y su disponibilidad
+        </p>
+    </div>
+    <div class="flex items-center gap-3 w-full md:w-auto">
+        <a href="{{ url_for('products.create') }}"
+            class="flex-1 md:flex-none flex items-center justify-center gap-2 rounded-xl h-11 px-6 bg-primary text-sm font-bold shadow-sm shadow-primary/20 transition-transform active:scale-95 text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                <path d="M0 0h24v24H0V0z" fill="none" />
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+            </svg>
+            Nuevo Producto
+        </a>
+    </div>
+</header>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="space-y-2 mb-4">
+    {% for category, message in messages %}
+    <div
+        class="rounded-xl border px-4 py-3 text-sm font-semibold {% if category == 'error' %}border-red-200 bg-red-50 text-red-700{% elif category == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-700{% else %}border-slate-200 bg-slate-50 text-slate-700{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<form class="mb-6 flex gap-6" method="GET" action="{{ url_for('products.index') }}">
+    <div class="relative w-full">
+        <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-6">
+                <path
+                    d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z" />
+            </svg>
+        </div>
+        <input name="q" value="{{ q or '' }}" placeholder="Buscar por nombre o categoría..." type="text"
+            class="block w-full h-12 pl-11 pr-4 bg-white border-none rounded-xl ring-1 ring-slate-200 focus:ring-2 focus:ring-primary/20 text-sm placeholder:text-slate-400 focus-visible:outline-none" />
+        <input type="hidden" name="per_page" value="{{ per_page }}" />
+    </div>
+    <button type="submit"
+        class="rounded-xl h-11 px-6 bg-primary text-sm text-white shadow-sm shadow-primary/20 transition-transform active:scale-95 cursor-pointer">
+        Buscar
+    </button>
+</form>
+
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white/50 backdrop-blur-sm">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50/50 border-b border-slate-200">
+                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Producto
+                    </th>
+                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Categoría
+                    </th>
+                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Precio
+                    </th>
+                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Stock
+                    </th>
+                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">
+                        Acciones
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% if products and products|length > 0 %}
+                {% for product in products %}
+                <tr class="hover:bg-primary/5 transition-colors group">
+                    <td class="px-6 py-5">
+                        <div class="flex items-center gap-3">
+                            <div class="size-10 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
+                                {% if product.imagen_url %}
+                                <img src="{{ product.imagen_url }}" alt="{{ product.nombre_producto }}" class="w-full h-full object-cover">
+                                {% else %}
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-5 text-slate-400">
+                                    <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z"/>
+                                </svg>
+                                {% endif %}
+                            </div>
+                            <span class="text-slate-900 font-semibold">{{ product.nombre_producto }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-5">
+                        <span class="text-slate-700 text-sm font-medium">{{ product.categoria or '-' }}</span>
+                    </td>
+                    <td class="px-6 py-5">
+                        <span class="text-slate-900 font-medium">${{ "{:,.2f}".format(product.precio_venta or 0) }}</span>
+                    </td>
+                    <td class="px-6 py-5">
+                        {% if product.stock and product.stock > 0 %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
+                            {{ product.stock }} disponible
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">
+                            Agotado
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-5">
+                        <div class="flex justify-end gap-1">
+                            <a href="{{ url_for('products.recipes', product_id=product.id) }}"
+                                class="p-2 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-all cursor-pointer"
+                                type="button" title="Gestionar recetas">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                                    class="size-6">
+                                    <path d="M320-240h320v-80H320v80Zm0-160h320v-80H320v80ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T760-80H240Zm280-520v-200H240v640h520v-440H520ZM240-800v200-200 640-640Z"/>
+                                </svg>
+                            </a>
+                            <a href="{{ url_for('products.edit', product_id=product.id) }}"
+                                class="p-2 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-all cursor-pointer"
+                                type="button" title="Editar producto">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                                    class="size-6">
+                                    <path
+                                        d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
+                                </svg>
+                            </a>
+                            <a href="{{ url_for('products.delete', product_id=product.id) }}"
+                                class="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer"
+                                type="button" title="Eliminar producto">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                                    class="size-6">
+                                    <path
+                                        d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
+                                </svg>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td class="px-6 py-8 text-slate-500 text-sm" colspan="5">
+                        No se encontraron productos.
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    <div class="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-slate-50/50">
+        <div class="text-xs text-slate-500 font-medium">
+            {% if total and total > 0 %}
+            Mostrando {{ start_item }} a {{ end_item }} de {{ total }} productos
+            {% else %}
+            Mostrando 0 productos
+            {% endif %}
+        </div>
+        <div class="flex items-center gap-1">
+            <a class="p-2 rounded-lg hover:bg-slate-200 transition-colors {% if page <= 1 %}pointer-events-none opacity-30{% endif %}"
+                href="{{ url_for('products.index', page=page-1, q=q, per_page=per_page) }}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-6">
+                    <path d="M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z" />
+                </svg>
+            </a>
+            {% set start_page = 1 if total_pages <= 3 else (page - 1) %} {% if start_page < 1 %}{% set start_page=1 %}{%
+                endif %} {% set end_page=total_pages if total_pages <=3 else (page + 1) %} {% if end_page> total_pages
+                %}{% set end_page = total_pages %}{% endif %}
+                {% for p in range(start_page, end_page + 1) %}
+                <a class="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-medium {% if p == page %}bg-primary font-bold text-white{% else %}hover:bg-slate-200{% endif %}"
+                    href="{{ url_for('products.index', page=p, q=q, per_page=per_page) }}">
+                    {{ p }}
+                </a>
+                {% endfor %}
+                <a class="p-2 rounded-lg hover:bg-slate-200 transition-colors {% if page >= total_pages %}pointer-events-none opacity-30{% endif %}"
+                    href="{{ url_for('products.index', page=page+1, q=q, per_page=per_page) }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-6">
+                        <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z" />
+                    </svg>
+                </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

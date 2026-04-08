@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Productos{% endblock %}
+
+{% block extra_head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}
+
+{% block content %}
+<!-- Main Content Canvas -->
+<main class="flex-1 p-6 md:p-10 max-w-7xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+            <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Nuestra Selección</span>
+            <h2 class="text-4xl font-black text-on-background tracking-tight mt-2">Hecha un vistazo a nuestros productos
+            </h2>
+        </div>
+    </div>
+    <!-- Bento/Grid of Products -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        {% if products %}
+            {% for product in products %}
+            <div
+                class="group bg-surface rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden flex flex-col">
+                <div class="aspect-4/5 overflow-hidden relative">
+                    {% if product.imagen_url %}
+                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        alt="{{ product.nombre_producto }}"
+                        src="{{ product.imagen_url }}" />
+                    {% else %}
+                    <div class="absolute inset-0 w-full h-full bg-slate-200 flex items-center justify-center text-slate-400 group-hover:scale-110 transition-transform duration-700">
+                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-20 opacity-50"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z"/></svg>
+                    </div>
+                    {% endif %}
+                    <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
+                        <span class="text-[10px] font-black uppercase text-primary tracking-widest">{{ product.categoria.replace('_', ' ') }}</span>
+                    </div>
+                </div>
+                <div class="p-5 flex flex-col flex-1">
+                    <div class="flex justify-between items-start mb-2 gap-4">
+                        <h3 class="text-lg font-bold text-on-background group-hover:text-primary transition-colors">
+                            {{ product.nombre_producto }}</h3>
+                        <div class="text-right shrink-0">
+                            <span class="block text-lg font-black text-primary">${{ "{:,.2f}".format(product.precio_venta * 1.16) }}</span>
+                            <span class="text-[10px] text-slate-400 font-medium">IVA incluido</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-500 line-clamp-2 mb-6">{{ product.descripcion or 'Sin descripción disponible.' }}</p>
+                    {% if current_user.is_authenticated and current_user.is_customer() %}
+                    <button
+                        data-product-id="{{ product.id }}"
+                        data-add-url="{{ url_for('orders.add_to_cart', product_id=product.id) }}"
+                        onclick="addToCart(this)"
+                        class="add-to-cart-btn mt-auto w-full py-3 bg-primary text-white rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-md shadow-primary/20 cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-6">
+                            <path
+                                d="M440-600v-120H320v-80h120v-120h80v120h120v80H520v120h-80ZM223.5-103.5Q200-127 200-160t23.5-56.5Q247-240 280-240t56.5 23.5Q360-193 360-160t-23.5 56.5Q313-80 280-80t-56.5-23.5Zm400 0Q600-127 600-160t23.5-56.5Q647-240 680-240t56.5 23.5Q760-193 760-160t-23.5 56.5Q713-80 680-80t-56.5-23.5ZM40-800v-80h131l170 360h280l156-280h91L692-482q-11 20-29.5 31T622-440H324l-44 80h480v80H280q-45 0-68.5-39t-1.5-79l54-98-144-304H40Z" />
+                        </svg>
+                        <span>Añadir al carrito</span>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-span-full py-20 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-24 mx-auto text-slate-200 mb-6">
+                    <path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/>
+                </svg>
+                <h3 class="text-2xl font-bold text-slate-700 mb-2">Próximamente...</h3>
+                <p class="text-slate-500">Estamos horneando nuevas dulces creaciones para ti. Vuelve pronto.</p>
+            </div>
+        {% endif %}
+
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function addToCart(btn) {
+  const url = btn.dataset.addUrl;
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+  // Visual feedback
+  btn.disabled = true;
+  btn.querySelector('span').textContent = 'Añadiendo…';
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/json' },
+    });
+    const data = await res.json();
+    if (data.ok) {
+      // Redirect to cart page
+      window.location.href = data.redirect;
+    } else {
+      Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'No se pudo añadir el producto.', confirmButtonColor: '#ec135b' });
+      btn.disabled = false;
+      btn.querySelector('span').textContent = 'Añadir al carrito';
+    }
+  } catch (e) {
+    Swal.fire({ icon: 'error', title: 'Error de red', text: 'No se pudo conectar con el servidor.', confirmButtonColor: '#ec135b' });
+    btn.disabled = false;
+    btn.querySelector('span').textContent = 'Añadir al carrito';
+  }
+}
+</script>
+{% endblock %}

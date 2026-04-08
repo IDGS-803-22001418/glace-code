@@ -1,0 +1,226 @@
+{% extends "internal/base.html" %}
+
+{% block title %}Eliminar Cliente{% endblock %}
+
+{% block content %}
+
+<div class="mb-2">
+    <a class="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors mb-6 group"
+        href="{{ url_for('customers.index') }}">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+            class="size-6 group-hover:-translate-x-1 transition-transform">
+            <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+        </svg>
+        <span class="font-semibold text-sm">Volver a Clientes</span>
+    </a>
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2 mb-1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                    class="size-6 text-primary">
+                    <path
+                        d="M804-282q17 9 30-4t4-30l-58-108-42 108 66 34Zm-200-38h48l96-238q3-8-1.5-13.5T736-580l-80-32q-9-3-17.5 2T628-596l-24 276Zm-296 0h48l-24-276q-2-11-10.5-15t-17.5-1l-80 32q-8 3-11.5 8.5T212-558l96 238Zm-152 38 66-34-42-108-58 108q-9 17 4 30t30 4Zm280-38h88l30-338q2-9-4.5-15.5T534-680H426q-8 0-14.5 6.5T406-658l30 338ZM138-200q-42 0-70-31.5T40-306q0-12 3.5-23.5T52-352l88-168q-14-40 1-79t53-55l80-32q14-5 28-7t28 1q14-29 39-48.5t57-19.5h108q32 0 57 19.5t39 48.5q14-2 28-.5t28 6.5l80 32q40 16 56 55t-2 77l88 168q6 11 9 23t3 25q0 45-30.5 75.5T814-200q-11 0-22-2.5t-22-7.5l-62-30H250l-56 30q-13 7-27.5 8.5T138-200Zm342-280Z" />
+                </svg>
+                <span class="text-xs font-bold tracking-widest uppercase text-primary/80">Maison Glacé</span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-extrabold leading-tight tracking-tight">
+                Perfil de Cliente
+            </h1>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl p-6 shadow-sm border border-primary/5 mb-6">
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
+        <div class="flex gap-6 items-center">
+            <div
+                class="size-24 md:size-32 ring-4 ring-slate-200 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-2xl md:text-6xl">
+                {% set full_name = (customer.user.nombre_completo if customer and customer.user else '')|trim %}
+                {% set parts = full_name.split() %}
+                {% if parts|length == 0 %}
+                ?
+                {% elif parts|length == 1 %}
+                {{ parts[0][:2]|upper }}
+                {% else %}
+                {{ (parts[0][:1] ~ parts[-1][:1])|upper }}
+                {% endif %}
+            </div>
+            <div class="flex flex-col justify-center">
+                <div class="flex md:items-center md:gap-3 flex-col md:flex-row">
+                    <h1
+                        class="text-slate-900 text-xl md:text-3xl font-extrabold tracking-tight text-center md:text-left">
+                        {{ customer.user.nombre_completo if customer and customer.user else 'Cliente Desconocido' }}
+                    </h1>
+                    {% if customer %}
+                    {% set nivel = customer.nivel_cliente() %}
+                    {% set nivel_classes = {
+                    'Platino': 'bg-cyan-100 text-cyan-700',
+                    'Oro': 'bg-yellow-100 text-yellow-700',
+                    'Plata': 'bg-slate-100 text-slate-600',
+                    'Bronce': 'bg-orange-100 text-orange-700'
+                    } %}
+                    <span
+                        class="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 {{ nivel_classes.get(nivel, 'bg-slate-100 text-slate-600') }}">
+                        Cliente {{ nivel }}
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="flex flex-col sm:flex-row sm:gap-6 mt-3">
+                    <p class="text-slate-600 text-sm font-medium flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                            class="size-6 text-primary">
+                            <path
+                                d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z" />
+                        </svg>
+                        {{ customer.user.correo_electronico if customer and customer.user else 'Correo no disponible' }}
+                    </p>
+                    <p class="text-slate-600 text-sm font-medium flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                            class="size-6 text-primary">
+                            <path d="M0 0h24v24H0V0z" fill="none" />
+                            <path
+                                d="M6.54 5c.06.89.21 1.76.45 2.59l-1.2 1.2c-.41-1.2-.67-2.47-.76-3.79h1.51m9.86 12.02c.85.24 1.72.39 2.6.45v1.49c-1.32-.09-2.59-.35-3.8-.75l1.2-1.19M7.5 3H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.49c0-.55-.45-1-1-1-1.24 0-2.45-.2-3.57-.57-.1-.04-.21-.05-.31-.05-.26 0-.51.1-.71.29l-2.2 2.2c-2.83-1.45-5.15-3.76-6.59-6.59l2.2-2.2c.28-.28.36-.67.25-1.02C8.7 6.45 8.5 5.25 8.5 4c0-.55-.45-1-1-1z" />
+                        </svg>
+                        {{ customer.telefono if customer and customer.telefono else 'Número no disponible' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="flex gap-3 shrink-0">
+            <a href="{{ url_for('customers.edit', customer_id=customer.id) }}"
+                class="flex-1 md:flex-none flex items-center justify-center gap-2 rounded-xl h-11 px-6 bg-primary text-white text-sm font-bold hover:shadow-lg hover:shadow-primary/30 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-6">
+                    <path
+                        d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
+                </svg>
+                Editar Perfil
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- DASHBOARD CARDS -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+    <!-- Card: Total Gastado -->
+    <div class="bg-white rounded-3xl p-6 border border-primary/5 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Total Gastado</span>
+            <div class="bg-primary/5 p-2 rounded-xl text-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-5">
+                    <path
+                        d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
+                </svg>
+            </div>
+        </div>
+        <h2 class="text-3xl font-black text-slate-800 tracking-tight">${{ "{:,.2f}".format(total_spent) }}</h2>
+    </div>
+
+    <!-- Card: Pedidos -->
+    <div class="bg-white rounded-3xl p-6 border border-primary/5 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Pedidos</span>
+            <div class="bg-primary/5 p-2 rounded-xl text-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-5">
+                    <path
+                        d="M280-80q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
+                </svg>
+            </div>
+        </div>
+        <h2 class="text-3xl font-black text-slate-800 tracking-tight">{{ order_count }}</h2>
+    </div>
+
+    <!-- Card: Puntos Lealtad -->
+    <div class="bg-white rounded-3xl p-6 border border-primary/5 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Puntos Lealtad</span>
+            <div class="bg-primary/5 p-2 rounded-xl text-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-5">
+                    <path
+                        d="m354-287 126-76 126 77-33-144 111-96-146-13-58-136-58 135-146 13 111 97-33 143ZM233-120l65-281L80-590l288-25 112-265 112 265 288 25-218 189 65 281-247-149-247 149Zm247-350Z" />
+                </svg>
+            </div>
+        </div>
+        <h2 class="text-3xl font-black text-slate-800 tracking-tight">{{ customer.puntos_acumulados }} pts</h2>
+    </div>
+
+    <!-- Card: Ticket Promedio -->
+    <div class="bg-white rounded-3xl p-6 border border-primary/5 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Ticket Promedio</span>
+            <div class="bg-primary/5 p-2 rounded-xl text-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-5">
+                    <path
+                        d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm80-80h400v-80H280v80Zm0-160h400v-80H280v80Zm0-160h400v-80H280v80Z" />
+                </svg>
+            </div>
+        </div>
+        <h2 class="text-3xl font-black text-slate-800 tracking-tight">${{ "{:,.2f}".format(avg_ticket) }}</h2>
+    </div>
+</div>
+
+<div class="flex flex-col lg:flex-row gap-10">
+    <!-- HISTORY TABLE -->
+    <div class="flex-1">
+        <div class="flex items-center gap-2 mb-6">
+            <span class="bg-primary/10 text-primary p-2 rounded-xl">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-5">
+                    <path
+                        d="M480-80q-75 0-140.5-28.5t-114-77q-48.5-48.5-77-114T120-439.5q0-75.5 28.5-140.5t77-114q48.5-48.5 114-77T479.5-800q75.5 0 140.5 28.5t114 77q48.5 48.5 77 114T840-440q0 75-28.5 140.5t-77 114Q686-137 621-108.5T480-80Zm0-80q116 0 198-82t82-198q0-116-82-198t-198-82q-116 0-198 82t-82 198q0 116 82 198t198 82Zm-40-160h80v-160h160v-80H440v240Z" />
+                </svg>
+            </span>
+            <h3 class="text-xl font-extrabold text-slate-800 tracking-tight">Historial de Compras</h3>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-sm border border-primary/5 overflow-hidden">
+            {% if history %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="bg-slate-50/50 border-b border-primary/5">
+                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Fecha
+                            </th>
+                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Pedido
+                            </th>
+                            <th
+                                class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
+                                Monto</th>
+                            <th
+                                class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
+                                Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for order in history %}
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4 text-slate-500 font-medium whitespace-nowrap">{{
+                                order.fecha_hora.strftime('%d %b %Y') }}</td>
+                            <td class="px-6 py-4 font-bold text-slate-800 italic">#MG-{{ order.id }}</td>
+                            <td class="px-6 py-4 text-right font-black text-slate-900">${{
+                                "{:,.2f}".format(order.monto_recibido) }}</td>
+                            <td class="px-6 py-4 text-center">
+                                {% set bg = 'bg-slate-100 text-slate-600' %}
+                                {% if order.estado == 'Entregado' %}{% set bg = 'bg-emerald-50 text-emerald-600' %}
+                                {% elif order.estado == 'Cancelado' %}{% set bg = 'bg-rose-50 text-rose-600' %}
+                                {% elif order.estado == 'En Producción' %}{% set bg = 'bg-blue-50 text-blue-600' %}
+                                {% endif %}
+                                <span
+                                    class="px-3 py-1 rounded-lg font-black text-[9px] uppercase tracking-wide {{ bg }}">
+                                    {{ order.estado }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-12 text-center">
+                <p class="text-slate-400 font-bold italic">No se encontraron compras para este cliente aún.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

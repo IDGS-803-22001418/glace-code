@@ -1,0 +1,407 @@
+{% extends "internal/base.html" %}
+
+{% block content %}
+
+<div class="max-w-5xl w-full mx-auto py-6">
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+
+        <form method="POST" action="{{ url_for('pos.register_sale') }}" id="formVenta">
+            <input type="hidden" name="productos_json" id="productos_json">
+            <input type="hidden" name="total" id="total_input">
+            <input type="hidden" name="metodo_pago" id="metodo_pago_input">
+            <input type="hidden" name="monto_recibido" id="monto_recibido_input">
+            <input type="hidden" name="monto_cambio" id="monto_cambio_input">
+            <input type="hidden" name="cliente_id" id="cliente_id_input">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="flex flex-col md:flex-row">
+
+                <!-- Panel izquierdo - Ticket y total -->
+                <div class="flex-1 p-6 border-r border-gray-100">
+
+                    <div class="mb-6">
+                        <p class="text-[10px] font-bold text-pink-500 uppercase tracking-widest">Maison Glacé</p>
+                        <h2 class="text-xl font-bold text-gray-800">Confirmar Pago</h2>
+                        <p class="text-xs text-gray-400 mt-0.5">Revisa los detalles antes de finalizar</p>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                        <div class="flex justify-between text-xs text-gray-500 mb-3">
+                            <span>Ticket #0042</span>
+                            <span id="fechaActual"></span>
+                        </div>
+
+                        <div class="space-y-2 mb-4" id="resumenProductos">
+                            <!-- Los productos se llenarán desde sessionStorage -->
+                        </div>
+
+                        <div class="border-t border-gray-200 pt-3 mt-2">
+                            <div class="flex justify-between text-sm text-gray-500 mb-1">
+                                <span>Subtotal</span>
+                                <span id="subtotalTicket">$0.00</span>
+                            </div>
+                            <div class="flex justify-between text-sm text-gray-500 mb-1">
+                                <span>IVA (16%)</span>
+                                <span id="ivaTicket">$0.00</span>
+                            </div>
+                            <div
+                                class="flex justify-between text-lg font-bold text-gray-800 mt-2 pt-2 border-t border-gray-200">
+                                <span>TOTAL</span>
+                                <span id="totalTicket" class="text-primary">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-pink-50 rounded-xl p-4 text-center border border-pink-100">
+                        <p class="text-xs text-pink-500 uppercase tracking-wider mb-1">TOTAL A PAGAR</p>
+                        <p class="text-3xl font-bold text-primary" id="totalDestacado">$0.00</p>
+                    </div>
+
+                </div>
+
+                <!-- Panel derecho - Pago y teclado -->
+                <div class="flex-1 p-6">
+
+                    <div class="mb-6">
+                        <label class="block text-xs font-semibold text-gray-600 mb-2">MÉTODO DE PAGO</label>
+                        <div class="flex gap-3">
+                            <button type="button" onclick="seleccionarPago('efectivo')" id="btnEfectivo"
+                                class="metodo-pago flex-1 py-3 rounded-xl border-2 border-pink-500 bg-pink-50 text-pink-700 font-semibold text-sm transition-all cursor-pointer">
+                                💵 EFECTIVO
+                            </button>
+                            <button type="button" onclick="seleccionarPago('tarjeta')" id="btnTarjeta"
+                                class="metodo-pago flex-1 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-500 font-semibold text-sm transition-all hover:border-pink-300 cursor-pointer">
+                                💳 TARJETA
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sección para pago con tarjeta (simulación) -->
+                    <div id="tarjetaContainer" class="mb-6 hidden">
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <div class="text-center mb-3">
+                                <svg class="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                                <p class="text-sm font-semibold text-gray-700 mt-2">Pago con Tarjeta</p>
+                                <p class="text-xs text-gray-500">Monto a cobrar: <strong class="text-primary"
+                                        id="montoTarjeta">$0.00</strong></p>
+                            </div>
+                            <button type="button" onclick="simularPagoTarjeta()"
+                                class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors cursor-pointer">
+                                💳 SIMULAR PAGO CON TARJETA
+                            </button>
+                            <p class="text-[10px] text-gray-400 text-center mt-2">Demo - No se procesa un pago real</p>
+                        </div>
+                    </div>
+
+                    <!-- Sección para pago en efectivo -->
+                    <div id="efectivoContainer">
+                        <div id="montoRecibidoContainer" class="mb-6">
+                            <label class="block text-xs font-semibold text-gray-600 mb-2">MONTO RECIBIDO</label>
+                            <div class="relative">
+                                <span
+                                    class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xl">$</span>
+                                <input type="text" id="montoRecibido" value="0"
+                                    class="w-full pl-8 pr-4 py-4 text-2xl font-bold text-gray-800 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-pink-400 text-right"
+                                    readonly>
+                            </div>
+                            <div id="cambioContainer" class="mt-3 text-right">
+                                <span class="text-sm text-gray-500">Cambio: </span>
+                                <span id="cambioTexto" class="text-xl font-bold text-green-600">$0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3 mb-6">
+                            <button type="button" onclick="agregarNumero(1)"
+                                class="tecla py-4 text-xl font-semibold bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer">1</button>
+                            <button type="button" onclick="agregarNumero(2)"
+                                class="tecla py-4 text-xl font-semibold bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer">2</button>
+                            <button type="button" onclick="agregarNumero(3)"
+                                class="tecla py-4 text-xl font-semibold bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer">3</button>
+                            <button type="button" onclick="agregarNumero(4)"
+                                class="tecla py-4 text-xl font-semibold bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer">4</button>
+                            <button type="button" onclick="agregarNumero(5)"
+                                class="tecla py-4 text-xl font-semibold bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer">5</button>
+                            <button type="button" onclick="agregarNumero(6)"
+                                class="tecla py-4 text-xl font-semibold bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer">6</button>
+                            <button type="button" onclick="agregarNumero(7)"
+                                class="tecla py-4 text-xl font-semibold bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer">7</button>
+                            <button type="button" onclick="agregarNumero(8)"
+                                class="tecla py-4 text-xl font-semibold bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer">8</button>
+                            <button type="button" onclick="agregarNumero(9)"
+                                class="tecla py-4 text-xl font-semibold bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer">9</button>
+                            <button type="button" onclick="agregarNumero(0)"
+                                class="tecla py-4 text-xl font-semibold bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer">0</button>
+                            <button type="button" onclick="agregarPunto()"
+                                class="tecla py-4 text-xl font-semibold bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer">.</button>
+                            <button type="button" onclick="borrarUltimo()"
+                                class="tecla py-4 text-xl font-semibold bg-red-100 hover:bg-red-200 text-red-600 rounded-xl transition-colors cursor-pointer">⌫</button>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button type="button" onclick="regresar()"
+                            class="flex-1 py-3 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-colors cursor-pointer">
+                            ← Regresar
+                        </button>
+                        <button type="submit" id="btnConfirmar"
+                            class="flex-1 py-3 rounded-xl bg-primary hover:bg-pink-700 text-white font-semibold transition-colors shadow-md cursor-pointer">
+                            CONFIRMAR PAGO
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de pago con tarjeta simulado -->
+<div id="modalTarjeta" class="fixed inset-0 z-50 items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 text-center">
+        <div class="mb-4">
+            <div class="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-3">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800">¡Pago Simulado!</h3>
+            <p class="text-sm text-gray-500 mt-1">El pago con tarjeta ha sido procesado exitosamente</p>
+            <p class="text-xs text-gray-400 mt-2">Monto: <strong id="modalMonto" class="text-primary">$0.00</strong>
+            </p>
+        </div>
+        <button type="button" onclick="cerrarModalTarjetaYEnviar()"
+            class="w-full py-3 rounded-xl bg-primary hover:bg-pink-700 text-white font-semibold transition-colors cursor-pointer">
+            Continuar
+        </button>
+    </div>
+</div>
+
+<script>
+    let total = 0;
+    let montoRecibido = 0;
+    let metodoPagoSeleccionado = 'efectivo';
+    let carrito = [];
+    let clienteId = null;
+
+    const montoRecibidoInput = document.getElementById('montoRecibido');
+    const cambioTexto = document.getElementById('cambioTexto');
+    const totalDestacado = document.getElementById('totalDestacado');
+    const totalTicket = document.getElementById('totalTicket');
+    const subtotalTicket = document.getElementById('subtotalTicket');
+    const ivaTicket = document.getElementById('ivaTicket');
+    const btnEfectivo = document.getElementById('btnEfectivo');
+    const btnTarjeta = document.getElementById('btnTarjeta');
+    const efectivoContainer = document.getElementById('efectivoContainer');
+    const tarjetaContainer = document.getElementById('tarjetaContainer');
+    const resumenProductos = document.getElementById('resumenProductos');
+    const btnConfirmar = document.getElementById('btnConfirmar');
+    const modalTarjeta = document.getElementById('modalTarjeta');
+
+    function init() {
+        const carritoStorage = sessionStorage.getItem('carrito_venta');
+
+        if (carritoStorage) {
+            try {
+                carrito = JSON.parse(carritoStorage);
+                calcularTotales();
+                renderizarResumen();
+            } catch (e) {
+                window.location.href = "{{ url_for('pos.index') }}";
+                return;
+            }
+        } else {
+            window.location.href = "{{ url_for('pos.index') }}";
+            return;
+        }
+
+        const clienteStorage = sessionStorage.getItem('cliente_venta');
+        if (clienteStorage && clienteStorage !== '' && clienteStorage !== 'null') {
+            clienteId = clienteStorage;
+        }
+        // clienteId puede ser null = venta mostrador (sin cliente registrado)
+        document.getElementById('cliente_id_input').value = clienteId || '';
+
+        const fecha = new Date();
+        const fechaElement = document.getElementById('fechaActual');
+        if (fechaElement) {
+            fechaElement.innerText = fecha.toLocaleDateString('es-MX');
+        }
+
+        totalDestacado.innerText = `$${total.toFixed(2)}`;
+        totalTicket.innerText = `$${total.toFixed(2)}`;
+        document.getElementById('montoTarjeta').innerText = `$${total.toFixed(2)}`;
+        calcularCambio();
+    }
+
+    function calcularTotales() {
+        let subtotal = 0;
+        for (const item of carrito) {
+            subtotal += item.precio * item.cantidad;
+        }
+        const iva = subtotal * 0.16;
+        total = subtotal + iva;
+
+        if (subtotalTicket) subtotalTicket.innerText = `$${subtotal.toFixed(2)}`;
+        if (ivaTicket) ivaTicket.innerText = `$${iva.toFixed(2)}`;
+        if (totalTicket) totalTicket.innerText = `$${total.toFixed(2)}`;
+        if (totalDestacado) totalDestacado.innerText = `$${total.toFixed(2)}`;
+
+        document.getElementById('total_input').value = total;
+        if (document.getElementById('montoTarjeta')) {
+            document.getElementById('montoTarjeta').innerText = `$${total.toFixed(2)}`;
+        }
+    }
+
+    function renderizarResumen() {
+        if (!resumenProductos) return;
+
+        let html = '';
+        for (const item of carrito) {
+            const itemTotal = item.precio * item.cantidad;
+            html += `
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">${escapeHtml(item.nombre)}${item.cantidad > 1 ? ' x' + item.cantidad : ''}</span>
+                    <span class="font-medium">$${itemTotal.toFixed(2)}</span>
+                </div>
+            `;
+        }
+        resumenProductos.innerHTML = html;
+    }
+
+    function seleccionarPago(metodo) {
+        metodoPagoSeleccionado = metodo;
+        document.getElementById('metodo_pago_input').value = metodo;
+
+        if (metodo === 'efectivo') {
+            btnEfectivo.classList.remove('border-gray-200', 'bg-white', 'text-gray-500');
+            btnEfectivo.classList.add('border-pink-500', 'bg-pink-50', 'text-pink-700');
+            btnTarjeta.classList.remove('border-pink-500', 'bg-pink-50', 'text-pink-700');
+            btnTarjeta.classList.add('border-gray-200', 'bg-white', 'text-gray-500');
+            efectivoContainer.classList.remove('hidden');
+            tarjetaContainer.classList.add('hidden');
+            btnConfirmar.classList.remove('hidden');
+        } else {
+            btnTarjeta.classList.remove('border-gray-200', 'bg-white', 'text-gray-500');
+            btnTarjeta.classList.add('border-pink-500', 'bg-pink-50', 'text-pink-700');
+            btnEfectivo.classList.remove('border-pink-500', 'bg-pink-50', 'text-pink-700');
+            btnEfectivo.classList.add('border-gray-200', 'bg-white', 'text-gray-500');
+            efectivoContainer.classList.add('hidden');
+            tarjetaContainer.classList.remove('hidden');
+            btnConfirmar.classList.add('hidden');
+        }
+    }
+
+    function simularPagoTarjeta() {
+        // Mostrar modal de éxito
+        document.getElementById('modalMonto').innerText = `$${total.toFixed(2)}`;
+        modalTarjeta.classList.remove('hidden');
+        modalTarjeta.classList.add('flex');
+    }
+
+    function cerrarModalTarjetaYEnviar() {
+        modalTarjeta.classList.add('hidden');
+        modalTarjeta.classList.remove('flex');
+
+        // Preparar y enviar el formulario
+        document.getElementById('productos_json').value = JSON.stringify(carrito);
+        document.getElementById('total_input').value = total;
+        document.getElementById('metodo_pago_input').value = 'tarjeta';
+        document.getElementById('cliente_id_input').value = clienteId || '';
+        document.getElementById('monto_recibido_input').value = total;
+        document.getElementById('monto_cambio_input').value = 0;
+
+        document.getElementById('formVenta').submit();
+    }
+
+    function agregarNumero(num) {
+        if (metodoPagoSeleccionado !== 'efectivo') return;
+
+        let valorActual = montoRecibidoInput.value;
+        if (valorActual === '0') {
+            montoRecibidoInput.value = num.toString();
+        } else {
+            montoRecibidoInput.value = valorActual + num;
+        }
+        montoRecibido = parseFloat(montoRecibidoInput.value);
+        document.getElementById('monto_recibido_input').value = montoRecibido;
+        calcularCambio();
+    }
+
+    function agregarPunto() {
+        if (metodoPagoSeleccionado !== 'efectivo') return;
+
+        let valorActual = montoRecibidoInput.value;
+        if (!valorActual.includes('.')) {
+            montoRecibidoInput.value = valorActual + '.';
+        }
+    }
+
+    function borrarUltimo() {
+        if (metodoPagoSeleccionado !== 'efectivo') return;
+
+        let valorActual = montoRecibidoInput.value;
+        if (valorActual.length > 1) {
+            montoRecibidoInput.value = valorActual.slice(0, -1);
+        } else {
+            montoRecibidoInput.value = '0';
+        }
+        montoRecibido = parseFloat(montoRecibidoInput.value);
+        document.getElementById('monto_recibido_input').value = montoRecibido;
+        calcularCambio();
+    }
+
+    function calcularCambio() {
+        if (metodoPagoSeleccionado === 'efectivo') {
+            let cambio = montoRecibido - total;
+            if (cambio < 0) {
+                cambioTexto.innerText = `$${cambio.toFixed(2)}`;
+                cambioTexto.classList.remove('text-green-600');
+                cambioTexto.classList.add('text-red-500');
+                btnConfirmar.disabled = true;
+                btnConfirmar.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                cambioTexto.innerText = `$${cambio.toFixed(2)}`;
+                cambioTexto.classList.remove('text-red-500');
+                cambioTexto.classList.add('text-green-600');
+                btnConfirmar.disabled = false;
+                btnConfirmar.classList.remove('opacity-50', 'cursor-not-allowed');
+                document.getElementById('monto_cambio_input').value = cambio;
+            }
+        }
+    }
+
+    function regresar() {
+        window.location.href = "{{ url_for('pos.index') }}";
+    }
+
+    document.getElementById('formVenta').addEventListener('submit', function (e) {
+        if (metodoPagoSeleccionado === 'efectivo') {
+            if (montoRecibido < total) {
+                e.preventDefault();
+                alert('El monto recibido es insuficiente');
+                return;
+            }
+            document.getElementById('productos_json').value = JSON.stringify(carrito);
+            document.getElementById('total_input').value = total;
+            document.getElementById('metodo_pago_input').value = metodoPagoSeleccionado;
+            document.getElementById('cliente_id_input').value = clienteId || '';
+            document.getElementById('monto_recibido_input').value = montoRecibido;
+            document.getElementById('monto_cambio_input').value = montoRecibido - total;
+        }
+    });
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+
+{% endblock %}

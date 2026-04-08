@@ -1,0 +1,210 @@
+{% extends 'internal/base.html' %}
+{% block title %}Compras - Crear{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-4 p-4 rounded-xl text-sm font-semibold {% if category == 'success' %}bg-green-50 text-green-600 border border-green-100{% else %}bg-red-50 text-red-600 border border-red-100{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Back link -->
+    <a href="{{ url_for('purchases.index') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-[#e91e63] mb-4 transition">
+
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        Volver a Compras
+    </a>
+
+    <!-- Title -->
+    <div class="mb-6">
+        <div class="flex items-center space-x-2 mb-1">
+            <svg class="w-5 h-5 text-[#e91e63]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+            <span class="text-xs font-bold text-[#e91e63] uppercase tracking-wider">Maison Glacé</span>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900">Registrar Compra</h1>
+    </div>
+
+    <form method="POST" action="{{ url_for('purchases.crear') }}" id="compraForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left column -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Proveedor -->
+                <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                    <h3 class="flex items-center text-base font-bold text-gray-900 mb-1">
+                        <svg class="w-5 h-5 text-[#e91e63] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg> Proveedor
+                    </h3>
+                    <p class="text-xs text-gray-400 mb-4">Seleccionar Proveedor Autorizado</p>
+                    <select name="proveedor_id" id="proveedor_id" required class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:ring-2 focus:ring-pink-200 focus:border-pink-300 focus:bg-white transition" onchange="actualizarCategoriaProveedor()">
+                        <option value="" data-categoria="">Busque en la base de datos de proveedores...</option>
+                        {% for p in proveedores %}
+                        <option value="{{ p.id }}" data-categoria="{{ p.categoria_insumos }}">{{ p.nombre_empresa }} ({{ p.categoria_insumos }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Productos en la Orden -->
+                <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-base font-bold text-gray-900">Productos en la Orden</h3>
+                        <button type="button" onclick="agregarProducto()" class="text-sm font-semibold text-[#e91e63] hover:text-pink-700 transition cursor-pointer">+ Agregar Producto</button>
+                    </div>
+                    <table class="w-full" id="productosTable">
+                        <thead>
+                            <tr class="border-b border-gray-100">
+                                <th class="text-left pb-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Producto</th>
+                                <th class="text-left pb-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider w-32">Cantidad</th>
+                                <th class="text-left pb-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider w-32">Precio Unit.</th>
+                                <th class="text-left pb-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider w-28">Total</th>
+                                <th class="w-10"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="productosBody">
+                        </tbody>
+                    </table>
+                    <div id="emptyMsg" class="text-center py-8 text-gray-400 text-sm">Haz clic en "+ Agregar Producto" para añadir insumos a la orden.</div>
+                </div>
+            </div>
+
+            <!-- Right column - Resumen -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm sticky top-24">
+                    <h3 class="text-base font-bold text-gray-900 mb-5">Resumen de Orden</h3>
+                    <div class="space-y-3 mb-4">
+                        <hr class="border-gray-100">
+                        <div class="flex justify-between">
+                            <span class="text-sm font-bold text-gray-700">Total</span>
+                            <span class="text-2xl font-bold text-gray-900" id="totalDisplay">$0.00</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full flex items-center justify-center space-x-2 bg-primary rounded-2xl text-white py-3 px-6 font-semibold text-sm hover:shadow-lg transition mb-3 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                        <span>Guardar Compra</span>
+                    </button>
+                    <a href="{{ url_for('purchases.index') }}" class="w-full flex items-center justify-center space-x-2 text-gray-500 py-2 text-sm font-semibold hover:text-gray-700 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <span>Cancelar</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const insumos = {{ insumos|tojson }};
+let rowCount = 0;
+let currentCategoria = '';
+
+function actualizarCategoriaProveedor() {
+    const select = document.getElementById('proveedor_id');
+    const option = select.options[select.selectedIndex];
+    const nuevaCategoria = option.getAttribute('data-categoria');
+    
+    // Si ya hay productos agregados y cambia la categoría, advertir o limpiar
+    const rows = document.getElementById('productosBody').querySelectorAll('tr');
+    if (rows.length > 0 && currentCategoria && nuevaCategoria !== currentCategoria) {
+        document.getElementById('productosBody').innerHTML = '';
+        document.getElementById('emptyMsg').style.display = 'block';
+        recalcular();
+    }
+    currentCategoria = nuevaCategoria;
+    console.log(currentCategoria);
+}
+
+function agregarProducto() {
+    if (!currentCategoria) {
+        alert('Por favor, selecciona primero un proveedor para filtrar los insumos por categoría.');
+        return;
+    }
+
+    document.getElementById('emptyMsg').style.display = 'none';
+    const tbody = document.getElementById('productosBody');
+    const idx = rowCount++;
+    const row = document.createElement('tr');
+    row.className = 'border-b border-gray-50';
+    row.id = 'row-' + idx;
+
+    let options = '<option value="" data-unit="">Seleccionar...</option>';
+    insumos.forEach(function(ins) {
+        console.log(ins.categoria);
+        if (ins.categoria === currentCategoria) {
+            options += '<option value="' + ins.id + '" data-unit="' + ins.unidad_base + '">' + ins.nombre_insumo + '</option>';
+        }
+    });
+
+    row.innerHTML =
+        '<td class="py-3 pr-3">' +
+            '<select name="insumo_id[]" required class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:ring-2 focus:ring-pink-200" onchange="actualizarUnidad(' + idx + ')">' + options + '</select>' +
+        '</td>' +
+        '<td class="py-3 pr-3">' +
+            '<div class="flex items-center space-x-2">' +
+                '<input type="number" name="cantidad[]" min="0.01" step="0.01" required class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm text-center focus:ring-2 focus:ring-pink-200" value="1" onchange="recalcular()" oninput="recalcular()">' +
+                '<span class="text-xs font-bold text-gray-400 unit-label min-w-[30px]"></span>' +
+            '</div>' +
+        '</td>' +
+        '<td class="py-3 pr-3">' +
+            '<div class="flex items-center">' +
+                '<span class="text-sm text-gray-400 mr-1">$</span>' +
+                '<input type="number" name="precio_unitario[]" min="0.01" step="0.01" required class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:ring-2 focus:ring-pink-200" value="0.00" onchange="recalcular()" oninput="recalcular()">' +
+            '</div>' +
+        '</td>' +
+        '<td class="py-3 pr-3 text-sm font-semibold text-gray-800 subtotal-cell">$0.00</td>' +
+        '<td class="py-3">' +
+            '<button type="button" onclick="eliminarFila(' + idx + ')" class="text-gray-400 hover:text-red-500 transition">' +
+                '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>' +
+            '</button>' +
+        '</td>';
+
+    tbody.appendChild(row);
+}
+
+function actualizarUnidad(idx) {
+    const row = document.getElementById('row-' + idx);
+    const select = row.querySelector('select[name="insumo_id[]"]');
+    const option = select.options[select.selectedIndex];
+    const unit = option.getAttribute('data-unit');
+    row.querySelector('.unit-label').textContent = unit || '';
+}
+
+function eliminarFila(idx) {
+    const row = document.getElementById('row-' + idx);
+    if (row) row.remove();
+    recalcular();
+    if (document.getElementById('productosBody').children.length === 0) {
+        document.getElementById('emptyMsg').style.display = 'block';
+    }
+}
+
+document.getElementById('compraForm').addEventListener('submit', function(e) {
+    const rows = document.getElementById('productosBody').querySelectorAll('tr');
+    if (rows.length === 0) {
+        e.preventDefault();
+        alert('Debes agregar al menos un producto a la orden.');
+        return false;
+    }
+});
+
+function recalcular() {
+    let total = 0;
+    const rows = document.getElementById('productosBody').querySelectorAll('tr');
+    rows.forEach(function(row) {
+        const cant = parseFloat(row.querySelector('input[name="cantidad[]"]').value) || 0;
+        const precio = parseFloat(row.querySelector('input[name="precio_unitario[]"]').value) || 0;
+        const sub = cant * precio;
+        total += sub;
+        row.querySelector('.subtotal-cell').textContent = '$' + sub.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    });
+    document.getElementById('totalDisplay').textContent = '$' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+</script>
+{% endblock %}

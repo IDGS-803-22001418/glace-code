@@ -1,0 +1,127 @@
+{% extends "internal/base.html" %}
+
+{% block title %}Eliminar Usuario{% endblock %}
+
+{% block content %}
+
+<div class="mb-2">
+    <a class="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors mb-6 group"
+        href="{{ url_for('users.index') }}">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+            class="size-6 group-hover:-translate-x-1 transition-transform">
+            <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+        </svg>
+        <span class="font-semibold text-sm">Volver a Usuarios</span>
+    </a>
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2 mb-1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                    class="size-6 text-primary">
+                    <path
+                        d="M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-82T668-426q51 9 96 25t84 39q32 19 52 47t20 63v92H760Zm-400-360q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm360-160q0 66-47 113t-113 47q-11 0-23-2.5t-22-6.5q25-29 39.5-65.5T569-680q0-40-14.5-76.5T515-822q10-4 22-6t23-2q66 0 113 47t47 113Z" />
+                </svg>
+                <span class="text-xs font-bold tracking-widest uppercase text-primary/80">Maison Glace</span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-extrabold leading-tight tracking-tight">
+                Confirmar Eliminacion de Usuario
+            </h1>
+        </div>
+    </div>
+</div>
+
+<div class="grid lg:grid-cols-12 gap-8">
+    <div class="lg:col-span-7 space-y-2">
+        <div class="bg-red-50 border border-red-100 p-6 rounded-xl flex gap-4">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                class="size-12 text-red-500 shrink-0">
+                <path
+                    d="m40-120 440-760 440 760H40Zm138-80h604L480-720 178-200Zm330.5-51.5Q520-263 520-280t-11.5-28.5Q497-320 480-320t-28.5 11.5Q440-297 440-280t11.5 28.5Q463-240 480-240t28.5-11.5ZM440-360h80v-200h-80v200Zm40-100Z" />
+            </svg>
+            <div>
+                <h3 class="text-red-900 font-bold text-lg mb-1">Atencion: Accion Irreversible</h3>
+                <p class="text-red-700 text-sm leading-relaxed">
+                    Estas a punto de eliminar permanentemente este usuario del sistema. Esta accion no se puede
+                    deshacer.
+                </p>
+            </div>
+        </div>
+
+        {% if is_self %}
+        <div class="bg-amber-50 border border-amber-200 p-5 rounded-xl text-amber-800 text-sm font-medium">
+            No puedes eliminar tu propio usuario.
+        </div>
+        {% endif %}
+
+        {% if is_last_admin %}
+        <div class="bg-amber-50 border border-amber-200 p-5 rounded-xl text-amber-800 text-sm font-medium">
+            No puedes eliminar este usuario porque es el ultimo administrador del sistema.
+        </div>
+        {% endif %}
+
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div class="p-8 flex gap-6 justify-center items-center">
+                <div class="relative flex gap-2">
+                    <div
+                        class="size-24 md:size-32 ring-4 ring-slate-200 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-4xl md:text-6xl">
+                        {% set full_name = (user.nombre_completo if user else '')|trim %}
+                        {% set parts = full_name.split() %}
+                        {% if parts|length == 0 %}
+                        ?
+                        {% elif parts|length == 1 %}
+                        {{ parts[0][:2]|upper }}
+                        {% else %}
+                        {{ (parts[0][:1] ~ parts[-1][:1])|upper }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <h2 class="text-slate-900 text-2xl font-bold text-center">
+                        {{ user.nombre_completo if user else 'Usuario' }}
+                    </h2>
+                    <p class="text-primary font-medium text-center">
+                        {{ user.correo_electronico if user else '—' }}
+                    </p>
+                    <div class="flex gap-4 justify-center pt-2">
+                        <span class="px-3 py-1 bg-slate-100 rounded-full text-xs font-bold text-slate-600">ID:
+                            #{{ user.id if user else '—' }}</span>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1
+                            {% if user and user.rol_asignado == 'admin' %}bg-cyan-100 text-cyan-700
+                            {% elif user and user.rol_asignado == 'chef' %}bg-orange-100 text-orange-700
+                            {% elif user and user.rol_asignado == 'seller' %}bg-emerald-100 text-emerald-700
+                            {% else %}bg-slate-100 text-slate-600{% endif %}">
+                            {{ user.rol_asignado|capitalize if user else 'Sin rol' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="lg:col-span-5">
+        <div class="bg-white border border-slate-200 rounded-xl p-8 sticky top-8">
+            <h4 class="text-lg font-bold mb-6">Confirmar accion</h4>
+            <form class="space-y-4" method="POST" action="{{ url_for('users.delete', user_id=user.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" {% if is_self or is_last_admin %}disabled{% endif %}
+                    class="w-full py-4 px-6 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-3 shadow-lg active:scale-[0.98] {% if is_self or is_last_admin %}bg-red-300 cursor-not-allowed shadow-red-300/20{% else %}bg-red-500 hover:bg-red-600 shadow-red-500/20 cursor-pointer{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-6">
+                        <path
+                            d="m376-300 104-104 104 104 56-56-104-104 104-104-56-56-104 104-104-104-56 56 104 104-104 104 56 56Zm-96 180q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520Zm-400 0v520-520Z" />
+                    </svg>
+                    Confirmar Eliminacion
+                </button>
+                <a href="{{ url_for('users.index') }}"
+                    class="w-full py-4 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-6">
+                        <path
+                            d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                    </svg>
+                    Cancelar y Volver
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

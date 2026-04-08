@@ -1,0 +1,241 @@
+{% extends "internal/base.html" %}
+{% block content %}
+
+<main class="pb-24">
+    <div class="max-w-4xl mx-auto">
+        <a href="{{ url_for('supplies.index') }}"
+            class="flex items-center text-gray-400 hover:text-mg-magenta transition-all mb-8 text-sm font-bold group w-fit">
+            <svg class="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Volver al Inventario
+        </a>
+
+        <div class="mb-10">
+            <div class="flex items-center space-x-2 mb-2">
+                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-mg-magenta">
+                    MAISON GLACÉ
+                </span>
+            </div>
+
+            <h1 class="text-4xl font-black text-[#1a202c] tracking-tight">Registrar Nuevo Insumo</h1>
+            <p class="text-gray-400 text-base mt-2 font-medium opacity-80">
+                Complete los detalles de la nueva materia prima.
+            </p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="space-y-2 mb-4">
+                {% for category, message in messages %}
+                <div
+                    class="rounded-xl border px-4 py-3 text-sm font-semibold {% if category == 'error' %}border-red-200 bg-red-50 text-red-700{% elif category == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-700{% else %}border-slate-200 bg-slate-50 text-slate-700{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-gray-50 p-8 sm:p-12">
+
+            <form action="{{ url_for('supplies.nuevo_insumo') }}" method="POST" class="space-y-12">
+                {{ form.csrf_token }}
+
+                <section>
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="p-3 bg-pink-50 text-mg-magenta rounded-2xl">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-bold text-[#2d3748]">Información General</h2>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="space-y-3">
+                            <label class="block text-sm font-black text-[#4a5568] ml-1 uppercase tracking-wide">
+                                Nombre del Insumo
+                            </label>
+                            {{ form.nombre_insumo(
+                            class="w-full p-5 bg-gray-50/50 border border-gray-100 rounded-3xl focus:ring-4
+                            focus:ring-mg-magenta/5 focus:border-mg-magenta outline-none transition-all text-gray-700
+                            font-medium",
+                            placeholder="Ej. Harina de Trigo"
+                            ) }}
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <div class="space-y-3">
+                                <label class="block text-sm font-black text-[#4a5568] ml-1 uppercase tracking-wide">
+                                    Categoría
+                                </label>
+                                <select name="categoria" required
+                                    class="w-full p-5 bg-gray-50/50 border border-gray-100 rounded-3xl focus:ring-4
+                                    focus:ring-mg-magenta/5 focus:border-mg-magenta outline-none transition-all
+                                    text-gray-500 cursor-pointer">
+                                    <option value="">Seleccione una categoría</option>
+                                    {% for cat in categorias %}
+                                    <option value="{{ cat }}" {% if form.categoria.data == cat %}selected{% endif %}>{{ cat }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="space-y-3">
+                                <label class="block text-sm font-black text-[#4a5568] ml-1 uppercase tracking-wide">
+                                    Unidad de Medida
+                                </label>
+                                {{ form.unidad_base_id(
+                                class="w-full p-5 bg-gray-50/50 border border-gray-100 rounded-3xl focus:ring-4
+                                focus:ring-mg-magenta/5 focus:border-mg-magenta outline-none transition-all
+                                text-gray-500 cursor-pointer"
+                                ) }}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section>
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="p-3 bg-pink-50 text-mg-magenta rounded-2xl">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-bold text-[#2d3748]">Control de Inventario</h2>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-10">
+                        <div class="space-y-3">
+                            <label class="block text-sm font-black text-[#4a5568] ml-1 uppercase tracking-wide">
+                                Stock Inicial
+                            </label>
+                            {{ form.stock_actual(
+                            class="w-full p-5 bg-gray-50/50 border border-gray-100 rounded-3xl focus:ring-4
+                            focus:ring-mg-magenta/5 focus:border-mg-magenta outline-none transition-all text-gray-700
+                            font-bold",
+                            placeholder="0.00"
+                            ) }}
+                        </div>
+
+                        <div class="space-y-3">
+                            <label class="block text-sm font-black text-mg-magenta ml-1 uppercase tracking-wide">
+                                Stock Mínimo (Alerta)
+                            </label>
+                            {{ form.stock_minimo_alerta(
+                            class="w-full p-5 bg-pink-50/20 border border-pink-100 rounded-3xl focus:ring-4
+                            focus:ring-mg-magenta/5 focus:border-mg-magenta outline-none transition-all text-mg-magenta
+                            font-bold",
+                            placeholder="0.00"
+                            ) }}
+                        </div>
+                    </div>
+                </section>
+
+
+                <section>
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="p-3 bg-pink-50 text-mg-magenta rounded-2xl">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2">
+                                </path>
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-bold text-[#2d3748]">Conversiones de Medida</h2>
+                    </div>
+
+                    <div id="conversiones-container" class="space-y-4">
+                        <div
+                            class="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 conversion-row bg-gray-50/30 p-5 sm:p-4 rounded-3xl border border-gray-100">
+                            <div class="w-full sm:flex-1 space-y-3">
+                                <label
+                                    class="block text-sm font-black text-[#4a5568] ml-1 uppercase tracking-wide">Unidad
+                                    a Convertir</label>
+                                <select name="unidad_destino[]"
+                                    class="w-full p-4 bg-white border border-gray-100 rounded-2xl focus:ring-4 focus:ring-mg-magenta/5 focus:border-mg-magenta outline-none transition-all text-gray-500">
+                                    <option value="">Seleccione una unidad...</option>
+                                    {% for u in unidades %}
+                                    <option value="{{ u.id }}">{{ u.nombre }} ({{ u.abreviatura }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="w-full sm:flex-1 space-y-3">
+                                <label
+                                    class="block text-sm font-black text-[#4a5568] ml-1 uppercase tracking-wide">Factor
+                                    (1 Base = ?)</label>
+                                <input type="number" step="0.001" name="factor_conversion[]"
+                                    class="w-full p-4 bg-white border border-gray-100 rounded-2xl focus:ring-4 focus:ring-mg-magenta/5 focus:border-mg-magenta outline-none transition-all text-gray-700 font-bold"
+                                    placeholder="Ej. 1000">
+                            </div>
+                            <button type="button"
+                                class="btn-remove-conversion w-full sm:w-auto hidden p-3 mt-2 sm:mt-8 bg-red-50 sm:bg-transparent border border-red-100 sm:border-0 rounded-2xl sm:rounded-none text-red-500 hover:text-red-700 transition-colors cursor-pointer font-bold"
+                                title="Eliminar conversión">
+                                <span class="flex items-center justify-center">
+                                    <span class="sm:hidden mr-2 text-sm uppercase tracking-wide">Eliminar</span>
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                        </path>
+                                    </svg>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" id="btn-add-conversion"
+                        class="mt-4 text-sm text-mg-magenta font-black uppercase tracking-wider flex items-center hover:text-pink-600 transition-colors cursor-pointer">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
+                            </path>
+                        </svg>
+                        Agregar otra conversión
+                    </button>
+
+                    <script>
+                        document.getElementById('btn-add-conversion').addEventListener('click', function () {
+                            const container = document.getElementById('conversiones-container');
+                            const rows = container.querySelectorAll('.conversion-row');
+                            const firstRow = rows[0];
+                            const newRow = firstRow.cloneNode(true);
+
+                            // Limpiar valores
+                            newRow.querySelector('select').value = '';
+                            newRow.querySelector('input').value = '';
+
+                            // Mostrar botón eliminar
+                            const btnRemove = newRow.querySelector('.btn-remove-conversion');
+                            btnRemove.classList.remove('hidden');
+                            btnRemove.addEventListener('click', function () {
+                                newRow.remove();
+                            });
+
+                            container.appendChild(newRow);
+                        });
+                    </script>
+                </section>
+
+                <div
+                    class="flex flex-col sm:flex-row items-center justify-end space-y-4 sm:space-y-0 sm:space-x-8 pt-6">
+                    <a href="{{ url_for('supplies.index') }}"
+                        class="text-sm font-black text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-widest">
+                        Cancelar
+                    </a>
+
+                    <button type="submit"
+                        class="w-full sm:w-auto bg-mg-magenta px-10 py-5 rounded-full font-black text-sm shadow-xl shadow-mg-magenta/20 flex items-center justify-center hover:scale-[1.05] active:scale-95 transition-all group uppercase tracking-widest cursor-pointer">
+                        Registrar Insumo
+                        <svg class="w-5 h-5 ml-3 group-hover:rotate-12 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+{% endblock %}

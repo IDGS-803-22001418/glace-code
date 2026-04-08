@@ -1,0 +1,99 @@
+{% extends 'internal/base.html' %}
+{% block title %}Proveedores - Eliminar{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Back link -->
+    <a href="{{ url_for('suppliers.index') }}"
+        class="inline-flex items-center text-sm text-gray-500 hover:text-[#e91e63] mb-4 transition">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Volver a Proveedores
+    </a>
+
+    <!-- Title -->
+    <div class="mb-8">
+        <div class="flex items-center space-x-2 mb-1">
+            <svg class="w-5 h-5 text-[#e91e63]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-width="2"
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                </path>
+            </svg>
+            <span class="text-xs font-bold text-[#e91e63] uppercase tracking-wider">Maison Glacé</span>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900">Confirmación Eliminación de Proveedor</h1>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <!-- Warning -->
+        <div class="lg:col-span-3 space-y-6">
+            <div class="bg-red-50 border border-red-100 rounded-2xl p-6">
+                <div class="flex items-center space-x-3 mb-3">
+                    <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-red-700">Atención: Acción Irreversible</h3>
+                </div>
+                <p class="text-sm text-red-600/80 leading-relaxed">
+                    Estás a punto de eliminar permanentemente este proveedor de la base de datos de Maison Glacé. Esta
+                    acción no se puede deshacer.
+                </p>
+            </div>
+
+            <!-- Proveedor card -->
+            <div class="bg-white rounded-2xl border border-gray-100 p-6 flex items-center space-x-4 shadow-sm">
+                <div class="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center overflow-hidden">
+                    <svg class="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4">
+                        </path>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-900">{{ proveedor.nombre_empresa }}</h4>
+                    {% if proveedor.categoria_insumos %}
+                    <div class="flex items-center space-x-1 text-xs text-gray-400 mt-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-width="2"
+                                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
+                            </path>
+                        </svg>
+                        <span class="uppercase font-bold tracking-wider">{{ proveedor.categoria_insumos }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirm actions -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                <h4 class="font-bold text-gray-900 mb-5">Confirmar acción</h4>
+                <form method="POST" action="{{ url_for('suppliers.delete', id=proveedor.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit"
+                        class="w-full flex items-center justify-center space-x-2 bg-red-500 hover:bg-red-600 text-white py-3 px-6 rounded-full font-semibold text-sm transition shadow-md hover:shadow-lg mb-3 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                            </path>
+                        </svg>
+                        <span>Confirmar Eliminación</span>
+                    </button>
+                </form>
+                <a href="{{ url_for('suppliers.index') }}"
+                    class="w-full flex items-center justify-center space-x-2 border border-gray-200 text-gray-600 py-3 px-6 rounded-full font-semibold text-sm hover:bg-gray-50 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    <span>Cancelar y Volver</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

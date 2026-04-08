@@ -1,0 +1,208 @@
+{% extends "internal/base.html" %} {% block title %}Nueva Orden{% endblock %} {% block content %}
+<div class="max-w-5xl mx-auto">
+
+    <a href="{{ url_for('production.index') }}" class="flex items-center text-gray-400 hover:text-primary transition-all mb-8 text-sm font-bold group w-fit cursor-pointer">
+        <svg class="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Volver a Control de Producción
+    </a>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="space-y-2 mb-6">
+        {% for category, message in messages %}
+        <div class="rounded-2xl border px-5 py-4 text-sm font-semibold flex items-start gap-3
+            {% if category == 'danger' %}border-red-200 bg-red-50 text-red-700
+            {% elif category == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-700
+            {% elif category == 'warning' %}border-amber-200 bg-amber-50 text-amber-700
+            {% else %}border-slate-200 bg-slate-50 text-slate-700{% endif %}">
+            <span class="mt-0.5 shrink-0">
+                {% if category == 'danger' %}⛔{% elif category == 'success' %}✅{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+            </span>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="mb-10">
+        <div class="flex items-center space-x-2 mb-2 text-primary">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            <span class="text-[10px] font-black uppercase tracking-[0.2em]">MAISON GLACÉ</span>
+        </div>
+        <h1 class="text-4xl font-black text-[#1a202c] tracking-tight">Nueva Orden de Producción</h1>
+        <p class="text-gray-400 text-sm mt-2">Selecciona el producto, la receta y la prioridad. Se validará el inventario automáticamente.</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('production.create') }}" class="bg-white border border-gray-100 rounded-[2.5rem] p-12 shadow-sm space-y-10">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- Paso 1: Seleccionar Producto -->
+        <div class="space-y-4">
+            <label for="product_id" class="text-[11px] font-black text-gray-300 uppercase tracking-widest ml-4">Paso 1 — Producto del Catálogo</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 11v10"></path></svg>
+                </div>
+                <select id="product_id" name="product_id"
+                    class="block w-full pl-16 pr-10 py-5 bg-gray-50 border-none rounded-3xl text-gray-600 focus:ring-4 focus:ring-primary/5 transition-all appearance-none font-medium cursor-pointer">
+                    <option value="">— Selecciona un producto —</option>
+                    {% for product in products %}
+                    <option value="{{ product.id }}">{{ product.nombre_producto }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Paso 2: Seleccionar Receta (se carga dinámicamente) -->
+        <div class="space-y-4" id="recipe-section">
+            <label for="recipe_id" class="text-[11px] font-black text-gray-300 uppercase tracking-widest ml-4">Paso 2 — Receta / Variante</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                </div>
+                <select id="recipe_id" name="recipe_id"
+                    class="block w-full pl-16 pr-10 py-5 bg-gray-50 border-none rounded-3xl text-gray-600 focus:ring-4 focus:ring-primary/5 transition-all appearance-none font-medium cursor-pointer">
+                    <option value="">— Primero selecciona un producto —</option>
+                </select>
+            </div>
+
+            <!-- Información de la receta seleccionada -->
+            <div id="recipe-info" class="hidden mt-4 p-5 bg-primary/5 rounded-3xl border border-primary/10 flex-wrap gap-6">
+                <div class="text-center">
+                    <p class="text-[10px] font-black uppercase tracking-widest mb-1">Produce</p>
+                    <span id="info-cantidad" class="text-2xl font-black text-primary">—</span>
+                    <span class="text-xs text-gray-400 ml-1">unidades</span>
+                </div>
+                <div class="text-center">
+                    <p class="text-[10px] font-black uppercase tracking-widest mb-1">Tiempo est.</p>
+                    <span id="info-tiempo" class="text-2xl font-black text-primary">—</span>
+                    <span class="text-xs text-gray-400 ml-1">min</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prioridad y Fecha -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div class="space-y-4">
+                <label class="text-[11px] font-black text-gray-300 uppercase tracking-widest ml-4">Prioridad</label>
+                <div class="flex p-1 bg-gray-50 rounded-3xl space-x-1">
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="prioridad" value="Alta" class="sr-only peer">
+                        <div class="cursor-pointer py-4 text-center rounded-[1.25rem] text-sm font-bold text-gray-400 peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm transition-all italic">Alta</div>
+                    </label>
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="prioridad" value="Media" class="sr-only peer" checked>
+                        <div class="cursor-pointer py-4 text-center rounded-[1.25rem] text-sm font-bold text-gray-400 peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm transition-all italic">Media</div>
+                    </label>
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="prioridad" value="Baja" class="sr-only peer">
+                        <div class="cursor-pointer py-4 text-center rounded-[1.25rem] text-sm font-bold text-gray-400 peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm transition-all italic">Baja</div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <label class="text-[11px] font-black text-gray-300 uppercase tracking-widest ml-4">Fecha y Hora Límite</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <input type="datetime-local" name="fecha_limite" id="fecha_limite"
+                        class="block w-full pl-16 py-5 bg-gray-50 border-none rounded-3xl text-gray-600 focus:ring-4 focus:ring-primary/5 transition-all font-medium"
+                        required>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-4 pt-6">
+            <button type="submit" id="submit-btn"
+                class="flex-1 py-5 bg-primary text-white font-black rounded-3xl shadow-xl shadow-primary/20 hover:scale-[1.01] transition-transform flex items-center justify-center cursor-pointer">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                Asignar a Cocina
+            </button>
+            <a href="{{ url_for('production.index') }}" class="flex-1 py-5 bg-white border border-gray-100 text-gray-400 font-bold rounded-3xl flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer">
+                Cancelar
+            </a>
+        </div>
+    </form>
+
+    <div class="mt-10 bg-pink-50 border border-pink-100 rounded-3xl p-8 flex items-start space-x-5">
+        <div class="bg-primary text-white p-2 rounded-xl">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <div class="space-y-1">
+            <h4 class="text-primary font-black text-sm">¿Cómo funciona?</h4>
+            <p class="text-pink-400 text-xs font-medium leading-relaxed italic">
+                Al asignar la orden, el sistema validará que existan suficientes insumos en inventario según la receta elegida.
+                Si el stock es suficiente, se descontarán automáticamente los insumos y se aumentará el stock del producto.
+                Si no hay stock suficiente, se mostrará un mensaje de advertencia.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const productSelect = document.getElementById('product_id');
+    const recipeSelect = document.getElementById('recipe_id');
+    const recipeInfo = document.getElementById('recipe-info');
+    const infoCantidad = document.getElementById('info-cantidad');
+    const infoTiempo = document.getElementById('info-tiempo');
+
+    productSelect.addEventListener('change', async function () {
+        const productId = this.value;
+
+        // Limpiar recetas
+        recipeSelect.innerHTML = '<option value="">Cargando recetas…</option>';
+        recipeInfo.classList.add('hidden');
+        recipeInfo.classList.remove('flex');
+
+        if (!productId) {
+            recipeSelect.innerHTML = '<option value="">— Primero selecciona un producto —</option>';
+            return;
+        }
+
+        try {
+            const res = await fetch(`/production/api/products/${productId}/recipes`);
+            const data = await res.json();
+
+            if (!data.recipes || data.recipes.length === 0) {
+                recipeSelect.innerHTML = '<option value="">Este producto no tiene recetas activas</option>';
+                return;
+            }
+
+            recipeSelect.innerHTML = '<option value="">— Selecciona una variante —</option>';
+            data.recipes.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.id;
+                opt.textContent = `${r.nombre_variante} (${r.cantidad_producida} uds. · ${r.tiempo_estimado_min} min)`;
+                opt.dataset.cantidad = r.cantidad_producida;
+                opt.dataset.tiempo = r.tiempo_estimado_min;
+                recipeSelect.appendChild(opt);
+            });
+        } catch (e) {
+            recipeSelect.innerHTML = '<option value="">Error al cargar recetas</option>';
+        }
+    });
+
+    recipeSelect.addEventListener('change', function () {
+        const selected = this.options[this.selectedIndex];
+        if (!selected.value) {
+            recipeInfo.classList.add('hidden');
+            recipeInfo.classList.remove('flex');
+            return;
+        }
+        infoCantidad.textContent = selected.dataset.cantidad || '—';
+        infoTiempo.textContent = selected.dataset.tiempo || '—';
+        recipeInfo.classList.remove('hidden');
+        recipeInfo.classList.add('flex');
+    });
+
+    // Set min datetime to now
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('fecha_limite').min = now.toISOString().slice(0, 16);
+</script>
+{% endblock %}

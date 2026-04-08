@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Acceso denegado{% endblock %}
+
+{% block extra_head %}
+<style>
+    .error-gradient {
+        background: radial-gradient(circle at 20% 20%, rgba(236, 19, 91, 0.15), transparent 35%),
+            radial-gradient(circle at 80% 0%, rgba(212, 175, 55, 0.2), transparent 30%),
+            linear-gradient(160deg, #f8f6f6 0%, #fff7fa 55%, #f4dada 100%);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main>
+    <section class="px-6 lg:px-20 py-16 lg:py-24 error-gradient min-h-[72vh] flex items-center">
+        <div class="max-w-7xl mx-auto w-full">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <p
+                        class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/70 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest">
+                        Acceso restringido
+                    </p>
+                    <h1 class="text-5xl lg:text-7xl font-black leading-tight text-slate-900">
+                        403
+                    </h1>
+                    <h2 class="text-2xl lg:text-4xl font-bold text-slate-800">
+                        No tienes permisos para ver esta pagina
+                    </h2>
+                    <p class="text-slate-600 text-lg max-w-xl leading-relaxed">
+                        Tu cuenta no tiene autorizacion para acceder a esta seccion. Si crees que esto es un error,
+                        contacta al administrador del sistema.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 pt-2">
+                        <a href="{{ url_for('main.index') }}"
+                            class="bg-primary text-white h-13 px-8 rounded-xl font-bold text-base hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 inline-flex items-center justify-center gap-2">
+                            Ir al inicio
+                        </a>
+                        <button onclick="history.back()"
+                            class="bg-white/85 border border-slate-200 h-13 px-8 rounded-xl font-bold text-base hover:bg-white transition-colors inline-flex items-center justify-center gap-2 cursor-pointer">
+                            Volver atras
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

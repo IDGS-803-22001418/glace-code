@@ -1,0 +1,119 @@
+{% extends "internal/base.html" %}
+
+{% block title %}Eliminar Cliente{% endblock %}
+
+{% block content %}
+
+<div class="mb-2">
+    <a class="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors mb-6 group"
+        href="{{ url_for('customers.index') }}">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+            class="size-6 group-hover:-translate-x-1 transition-transform">
+            <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+        </svg>
+        <span class="font-semibold text-sm">Volver a Clientes</span>
+    </a>
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2 mb-1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                    class="size-6 text-primary">
+                    <path
+                        d="M804-282q17 9 30-4t4-30l-58-108-42 108 66 34Zm-200-38h48l96-238q3-8-1.5-13.5T736-580l-80-32q-9-3-17.5 2T628-596l-24 276Zm-296 0h48l-24-276q-2-11-10.5-15t-17.5-1l-80 32q-8 3-11.5 8.5T212-558l96 238Zm-152 38 66-34-42-108-58 108q-9 17 4 30t30 4Zm280-38h88l30-338q2-9-4.5-15.5T534-680H426q-8 0-14.5 6.5T406-658l30 338ZM138-200q-42 0-70-31.5T40-306q0-12 3.5-23.5T52-352l88-168q-14-40 1-79t53-55l80-32q14-5 28-7t28 1q14-29 39-48.5t57-19.5h108q32 0 57 19.5t39 48.5q14-2 28-.5t28 6.5l80 32q40 16 56 55t-2 77l88 168q6 11 9 23t3 25q0 45-30.5 75.5T814-200q-11 0-22-2.5t-22-7.5l-62-30H250l-56 30q-13 7-27.5 8.5T138-200Zm342-280Z" />
+                </svg>
+                <span class="text-xs font-bold tracking-widest uppercase text-primary/80">Maison Glacé</span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-extrabold leading-tight tracking-tight">
+                Confirmar Eliminación de Cliente
+            </h1>
+        </div>
+    </div>
+</div>
+
+<div class="grid lg:grid-cols-12 gap-8">
+    <div class="lg:col-span-7 space-y-6">
+        <div class="bg-red-50 border border-red-100 p-6 rounded-xl flex gap-4">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                class="size-12 text-red-500 shrink-0">
+                <path
+                    d="m40-120 440-760 440 760H40Zm138-80h604L480-720 178-200Zm330.5-51.5Q520-263 520-280t-11.5-28.5Q497-320 480-320t-28.5 11.5Q440-297 440-280t11.5 28.5Q463-240 480-240t28.5-11.5ZM440-360h80v-200h-80v200Zm40-100Z" />
+            </svg>
+            <div>
+                <h3 class="text-red-900 font-bold text-lg mb-1">Atención: Acción Irreversible</h3>
+                <p class="text-red-700 text-sm leading-relaxed">
+                    Estás a punto de eliminar permanentemente este cliente de la base de datos de Maison Glacé. Esta
+                    acción no se puede deshacer.
+                </p>
+            </div>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div class="p-8 flex gap-6 justify-center items-center">
+                <div class="relative flex gap-2">
+                    <div
+                        class="size-32 ring-4 ring-slate-200 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-6xl">
+                        {% set full_name = (customer.user.nombre_completo if customer and customer.user else '')|trim %}
+                        {% set parts = full_name.split() %}
+                        {% if parts|length == 0 %}
+                        ?
+                        {% elif parts|length == 1 %}
+                        {{ parts[0][:2]|upper }}
+                        {% else %}
+                        {{ (parts[0][:1] ~ parts[-1][:1])|upper }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <h2 class="text-slate-900 text-2xl font-bold text-center">
+                        {{ customer.user.nombre_completo if customer and customer.user else 'Cliente' }}
+                    </h2>
+                    <p class="text-primary font-medium text-center">
+                        {{ customer.user.correo_electronico if customer and customer.user else '—' }}
+                    </p>
+                    <div class="flex gap-4 justify-center pt-2">
+                        <span class="px-3 py-1 bg-slate-100 rounded-full text-xs font-bold text-slate-600">ID:
+                            #{{ customer.id if customer else '—' }}</span>
+                        {% if customer %}
+                        {% set nivel = customer.nivel_cliente() %}
+                        {% set nivel_classes = {
+                        'Platino': 'bg-yellow-100 text-yellow-700',
+                        'Oro': 'bg-yellow-100 text-yellow-700',
+                        'Plata': 'bg-slate-100 text-slate-600',
+                        'Bronce': 'bg-orange-100 text-orange-700'
+                        } %}
+                        <span
+                            class="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 {{ nivel_classes.get(nivel, 'bg-slate-100 text-slate-600') }}">
+                            Cliente {{ nivel }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="lg:col-span-5">
+        <div class="bg-white border border-slate-200 rounded-xl p-8 sticky top-8">
+            <h4 class="text-lg font-bold mb-6">Confirmar acción</h4>
+            <form class="space-y-4" method="POST" action="{{ url_for('customers.delete', customer_id=customer.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                    class="w-full py-4 px-6 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-3 shadow-lg shadow-red-500/20 active:scale-[0.98] cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-6">
+                        <path
+                            d="m376-300 104-104 104 104 56-56-104-104 104-104-56-56-104 104-104-104-56 56 104 104-104 104 56 56Zm-96 180q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520Zm-400 0v520-520Z" />
+                    </svg>
+                    Confirmar Eliminación
+                </button>
+                <a href="{{ url_for('customers.index') }}"
+                    class="w-full py-4 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-6">
+                        <path
+                            d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                    </svg>
+                    Cancelar y Volver
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

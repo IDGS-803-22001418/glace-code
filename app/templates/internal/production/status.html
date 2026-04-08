@@ -1,0 +1,151 @@
+{% extends "internal/base.html" %} {% block title %}Cambiar Estado{% endblock %} {% block content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="space-y-2 mb-6">
+    {% for category, message in messages %}
+    <div class="rounded-2xl border px-5 py-4 text-sm font-semibold flex items-start gap-3
+        {% if category == 'danger' %}border-red-200 bg-red-50 text-red-700
+        {% elif category == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-700
+        {% elif category == 'warning' %}border-amber-200 bg-amber-50 text-amber-700
+        {% else %}border-slate-200 bg-slate-50 text-slate-700{% endif %}">
+        <span class="mt-0.5 shrink-0">
+            {% if category == 'danger' %}⛔{% elif category == 'success' %}✅{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+        </span>
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<div class="max-w-5xl mx-auto">
+
+    <a href="{{ url_for('production.index') }}" class="flex items-center text-gray-400 hover:text-primary transition-all mb-8 text-sm font-bold group w-fit cursor-pointer">
+        <svg class="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Volver a Control de Producción
+    </a>
+
+    <div class="mb-10 text-center">
+        <span class="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2 block">MAISON GLACÉ</span>
+        <h1 class="text-4xl font-black text-[#1a202c] tracking-tight mb-2">Estado de Producción</h1>
+        <p class="text-gray-400 text-sm font-medium">
+            Orden
+            <span class="font-black text-primary">#PRD-{{ '%04d'|format(task.id) }}</span>
+            ·
+            {{ task.receta.product.nombre_producto if task.receta and task.receta.product else '—' }}
+            —
+            {{ task.receta.nombre_variante if task.receta else '' }}
+        </p>
+    </div>
+
+    <form method="POST" action="{{ url_for('production.status', id=task.id) }}" class="space-y-10">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        {% set estado_meta = {
+            'Pendiente': ('📋', 'Esperando inicio de preparación'),
+            'En Horno':  ('♨️',  'Proceso de cocción activo'),
+            'Decorando': ('🎨', 'Toques finales y presentación'),
+            'Listo':     ('✅', 'Producto terminado y validado')
+        } %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for estado in estados %}
+            {% set icon, desc = estado_meta.get(estado, ('●', '')) %}
+            <label class="relative group cursor-pointer">
+                <input type="radio" name="estado" value="{{ estado }}"
+                       class="sr-only peer"
+                       {% if task.estado == estado %}checked{% endif %}>
+                <div class="p-10 bg-white border-2 border-gray-100 rounded-4xl shadow-sm transition-all
+                            peer-checked:border-primary peer-checked:bg-primary/5
+                            hover:shadow-md flex flex-col items-center justify-center min-h-[200px]">
+
+                    <div class="w-20 h-20 rounded-3xl bg-gray-50 flex items-center justify-center text-3xl mb-5
+                                transition-all group-hover:scale-110
+                                peer-checked:bg-primary">
+                        {{ icon }}
+                    </div>
+
+                    <h3 class="text-lg font-black text-gray-700 uppercase tracking-widest mb-1">{{ estado }}</h3>
+                    <p class="text-gray-400 text-xs font-medium italic text-center">{{ desc }}</p>
+
+                    <!-- Checkmark cuando está seleccionado -->
+                    <div class="absolute top-5 right-5 opacity-0 peer-checked:opacity-100 text-primary transition-opacity">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                </div>
+            </label>
+            {% endfor %}
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-4 max-w-2xl mx-auto">
+            <button type="submit"
+                class="flex-1 py-5 bg-primary text-white font-black rounded-3xl shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform flex items-center justify-center cursor-pointer">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                Confirmar Cambio
+            </button>
+            <a href="{{ url_for('production.index') }}"
+                class="flex-1 py-5 bg-gray-50 text-gray-400 font-bold rounded-3xl flex items-center justify-center hover:bg-gray-100 transition-colors">
+                Cancelar
+            </a>
+        </div>
+    </form>
+
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const form = document.querySelector('form[action*="/status/"]');
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const selectedInput = form.querySelector('input[name="estado"]:checked');
+        if (!selectedInput) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Sin selección',
+                text: 'Por favor selecciona un estado antes de confirmar.',
+                confirmButtonColor: 'var(--color-primary)',
+                confirmButtonText: 'Entendido',
+                customClass: { popup: 'rounded-3xl' }
+            });
+            return;
+        }
+
+        const estado = selectedInput.value;
+        const isListo = estado === 'Listo';
+
+        Swal.fire({
+            icon: isListo ? 'warning' : 'question',
+            title: isListo ? '¿Marcar como Listo?' : `¿Cambiar a "${estado}"?`,
+            html: isListo
+                ? `<p class="text-sm text-gray-500">
+                      Esta acción <strong>cerrará la orden</strong> permanentemente y
+                      agregará las unidades producidas al inventario de productos.<br><br>
+                      ¿Estás seguro de que el producto está terminado?
+                   </p>`
+                : `<p class="text-sm text-gray-500">
+                      Se actualizará el estado de la orden a <strong>${estado}</strong>.
+                   </p>`,
+            showCancelButton: true,
+            confirmButtonColor: isListo ? '#16a34a' : 'var(--color-primary)',
+            cancelButtonColor: '#e5e7eb',
+            confirmButtonText: isListo ? 'Sí, completar orden' : 'Sí, actualizar',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'rounded-3xl',
+                cancelButton: '!text-gray-500'
+            }
+        }).then(result => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+</script>
+{% endblock %}

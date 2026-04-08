@@ -1,0 +1,139 @@
+{% extends "internal/base.html" %} {% block content %} 
+    <main class="pb-24">
+        <div class="max-w-380 mx-auto">
+            
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-6">
+                <div class="flex items-center space-x-5">
+                    <div class="hidden xs:flex p-4 bg-mg-magenta text-white rounded-2xl shadow-lg shadow-mg-magenta/20">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-black text-[#1a202c] tracking-tight leading-tight">Inventario de Insumos</h1>
+                        <p class="text-gray-400 text-sm mt-0.5 font-medium italic">Gestión de materias primas para repostería de Maison Glacé</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('supplies.nuevo_insumo') }}" class="w-full md:w-auto bg-mg-magenta px-8 py-4 rounded-full font-black text-sm shadow-xl shadow-mg-magenta/20 flex items-center justify-center hover:scale-[1.02] transition-transform uppercase tracking-widest ">
+                    <span class="mr-2 text-xl font-light">+</span> Nuevo Insumo
+                </a>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="space-y-2 mb-4">
+                    {% for category, message in messages %}
+                    <div
+                        class="rounded-xl border px-4 py-3 text-sm font-semibold {% if category == 'error' %}border-red-200 bg-red-50 text-red-700{% elif category == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-700{% else %}border-slate-200 bg-slate-50 text-slate-700{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="GET" action="{{ url_for('supplies.index') }}" class="relative mb-4">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-6 pointer-events-none text-gray-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <input type="search" 
+                       name="q" 
+                       value="{{ request.args.get('q', '') }}" 
+                       class="block w-full p-5 pl-16 text-base text-gray-600 border border-gray-100 rounded-4xl bg-white shadow-sm focus:ring-4 focus:ring-mg-magenta/5 focus:border-mg-magenta outline-none transition-all placeholder:text-gray-300 italic" 
+                       placeholder="Buscar insumo por nombre o categoría..."
+                       onsearch="if(this.value=='') this.form.submit();">
+            </form>
+
+            <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/40 border border-gray-50 overflow-hidden px-4 pt-2 pb-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-gray-100 uppercase tracking-widest text-[11px] font-black text-gray-400">
+                                <th class="px-6 py-10">Insumo</th>
+                                <th class="px-6 py-10">Categoría</th>
+                                <th class="px-6 py-10">Stock Actual</th>
+                                <th class="px-6 py-10">Unidad</th>
+                                <th class="px-6 py-10">Estado</th>
+                                <th class="px-6 py-10 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50/80 font-medium">
+                            {% for item in insumo_obj.items %}
+                            <tr class="group hover:bg-gray-50/40 transition-colors">
+                                <td class="px-6 py-10 font-black text-[#2d3748] text-base">{{ item.nombre_insumo }}</td>
+                                <td class="px-6 py-10 text-gray-500 text-base">{{ item.categoria }}</td>
+                                <td class="px-6 py-10 font-black text-xl tracking-tight {% if item.stock_actual <= item.stock_minimo_alerta %}text-red-500{% else %}text-[#2d3748]{% endif %}">
+                                    {{ item.stock_actual }}
+                                </td>
+                                <td class="px-6 py-10 text-gray-500 text-base">
+                                    {{ item.unidad_base.nombre }} ({{ item.unidad_base.abreviatura }})  
+                                </td>
+                                <td class="px-6 py-10">
+                                    {% if item.stock_actual <= item.stock_minimo_alerta %}
+                                        <span class="px-4 py-2 bg-red-50 text-red-500 rounded-full text-[11px] font-black flex items-center w-fit border border-red-100 uppercase tracking-tighter">
+                                            <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-2 animate-pulse"></span>Stock bajo
+                                        </span>
+                                    {% else %}
+                                        <span class="px-4 py-2 bg-green-50 text-green-500 rounded-full text-[11px] font-black flex items-center w-fit border border-green-100 uppercase tracking-tighter">
+                                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-2"></span>Suficiente
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-10 text-center">
+                                    <div class="flex justify-center space-x-5 text-gray-300">
+                                        <a href="{{ url_for('supplies.modificar', id=item.id) }}" class="hover:text-mg-magenta transition-colors text-2xl">✎</a>
+                                        <a href="{{ url_for('supplies.eliminar_insumo', id=item.id) }}" class="hover:text-red-500 transition-colors text-2xl">🗑</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="px-6 py-20 text-center text-gray-400 italic">
+                                    No se encontraron insumos que coincidan con la búsqueda.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-between p-10 mt-4 gap-4">
+                    <span class="text-sm font-bold text-gray-300 tracking-wide order-2 sm:order-1">
+                        Mostrando {{ insumo_obj.items|length }} de {{ insumo_obj.total }} productos
+                    </span>
+
+                    <div class="flex items-center space-x-2 order-1 sm:order-2">
+                        {% if insumo_obj.has_prev %}
+                        <a href="{{ url_for('supplies.index', page=insumo_obj.prev_num, q=request.args.get('q', '')) }}" 
+                        class="p-2 text-gray-400 hover:text-mg-magenta transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg>
+                        </a>
+                        {% endif %}
+
+                        {% for page_num in insumo_obj.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                            {% if page_num %}
+                                {% if insumo_obj.page == page_num %}
+                                    <button class="w-10 h-10 flex items-center justify-center bg-mg-magenta rounded-full font-black shadow-lg shadow-mg-magenta/30 scale-110 cursor-pointer">
+                                        {{ page_num }}
+                                    </button>
+                                {% else %}
+                                    <a href="{{ url_for('supplies.index', page=page_num, q=request.args.get('q', '')) }}" 
+                                    class="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-mg-magenta-light hover:text-mg-magenta rounded-full font-bold transition-all">
+                                        {{ page_num }}
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-gray-300 font-bold px-1">...</span>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if insumo_obj.has_next %}
+                        <a href="{{ url_for('supplies.index', page=insumo_obj.next_num, q=request.args.get('q', '')) }}" 
+                        class="p-2 text-gray-400 hover:text-mg-magenta transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends "internal/base.html" %} {% block content %}
+<main class="pb-24">
+    <div class="max-w-4xl mx-auto">
+
+        <a href="{{ url_for('losses.index') }}"
+            class="flex items-center text-gray-400 hover:text-primary transition-all mb-8 text-sm font-bold group w-fit">
+            <svg class="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Volver a Mermas
+        </a>
+
+        <div class="mb-10">
+            <div class="flex items-center space-x-2 mb-2 text-primary">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span class="text-[10px] font-black uppercase tracking-[0.2em]">MAISON GLACÉ</span>
+            </div>
+            <h1 class="text-4xl font-black text-[#1a202c] tracking-tight">Registrar Merma</h1>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="space-y-2 mb-8">
+            {% for category, message in messages %}
+            <div class="rounded-xl border px-4 py-3 text-sm font-semibold {% if category == 'error' %}border-red-200 bg-red-50 text-red-700{% elif category == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-700{% else %}border-slate-200 bg-slate-50 text-slate-700{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('losses.nueva_merma') }}" method="POST"
+            class="space-y-8 bg-white p-10 rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-gray-50">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div>
+                <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Producto
+                    del Inventario</label>
+                <select name="insumo_id" id="insumo_select" required
+                    class="w-full p-5 bg-gray-50 border-none rounded-2xl text-gray-600 font-bold focus:ring-4 focus:ring-primary/5 transition-all appearance-none cursor-pointer">
+                    <option value="" disabled selected>Seleccionar producto del catálogo...</option>
+                    {% for i in insumos %}
+                    <option value="{{ i.id }}" data-unidad="{{ i.unidad_base.abreviatura }}">{{ i.nombre_insumo }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <label
+                        class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Cantidad
+                        Perdida</label>
+                    <input type="number" step="0.01" name="cantidad_perdida" placeholder="0.00" required
+                        class="w-full p-5 bg-gray-50 border-none rounded-2xl text-gray-600 font-bold focus:ring-4 focus:ring-primary/5 transition-all outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Unidad
+                        de Medida</label>
+                    <input type="text" id="unidad_medida" disabled placeholder="kg (Autocompletado)"
+                        class="w-full p-5 bg-gray-100 border-none rounded-2xl text-gray-400 font-bold outline-none cursor-not-allowed">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Causa de
+                    la Merma</label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="causa" value="Caducidad" class="hidden peer" required>
+                        <div
+                            class="flex items-center justify-center p-4 border-2 border-gray-50 rounded-2xl text-gray-400 font-bold peer-checked:border-primary peer-checked:text-primary peer-checked:bg-primary/5 transition-all italic text-sm">
+                            Caducidad
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="causa" value="Error de Producción" class="hidden peer">
+                        <div
+                            class="flex items-center justify-center p-4 border-2 border-gray-50 rounded-2xl text-gray-400 font-bold peer-checked:border-primary peer-checked:text-primary peer-checked:bg-primary/5 transition-all italic text-sm">
+                            Producción
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="causa" value="Daño" class="hidden peer">
+                        <div
+                            class="flex items-center justify-center p-4 border-2 border-gray-50 rounded-2xl text-gray-400 font-bold peer-checked:border-primary peer-checked:text-primary peer-checked:bg-primary/5 transition-all italic text-sm">
+                            Daño
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Notas
+                    Adicionales</label>
+                <textarea name="notas_adicionales" rows="4" placeholder="Describa brevemente lo ocurrido..."
+                    class="w-full p-5 bg-gray-50 border-none rounded-[1.5rem] text-gray-600 font-medium focus:ring-4 focus:ring-primary/5 transition-all outline-none resize-none"></textarea>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                <a href="{{ url_for('losses.index') }}"
+                    class="flex-1 py-5 text-center bg-gray-50 text-gray-400 font-black rounded-2xl hover:bg-gray-100 transition-all">Cancelar</a>
+                <button type="submit"
+                    class="flex-1 py-5 bg-primary text-white font-black rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform uppercase tracking-widest text-sm cursor-pointer">Guardar
+                    Registro</button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script>
+    // Script para autocompletar la unidad de medida según el insumo seleccionado
+    document.getElementById('insumo_select').addEventListener('change', function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const unidad = selectedOption.getAttribute('data-unidad');
+        document.getElementById('unidad_medida').value = unidad || '';
+    });
+</script>
+{% endblock %}

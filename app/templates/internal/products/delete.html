@@ -1,0 +1,115 @@
+{% extends "internal/base.html" %}
+
+{% block title %}Eliminar Producto{% endblock %}
+
+{% block content %}
+
+<div class="mb-2">
+    <a class="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors mb-6 group"
+        href="{{ url_for('products.index') }}">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+            class="size-6 group-hover:-translate-x-1 transition-transform">
+            <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+        </svg>
+        <span class="font-semibold text-sm">Volver a Productos</span>
+    </a>
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2 mb-1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                    class="size-6 text-primary">
+                    <path
+                        d="M280-80q-33 0-56.5-23.5T200-160q0-33 23.5-56.5T280-240q33 0 56.5 23.5T360-160q0 33-23.5 56.5T280-80Zm400 0q-33 0-56.5-23.5T600-160q0-33 23.5-56.5T680-240q33 0 56.5 23.5T760-160q0 33-23.5 56.5T680-80ZM246-720l96 200h280l110-200H246Zm-38-80h590q23 0 35 20.5t1 41.5L692-482q-11 20-29.5 31T622-440H324l-44 80h480v80H280q-45 0-68-39.5t-2-78.5l54-98-144-304H40v-80h130l38 80Zm134 280h280-280Z" />
+                </svg>
+                <span class="text-xs font-bold tracking-widest uppercase text-primary/80">Maison Glace</span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-extrabold leading-tight tracking-tight">
+                Confirmar Eliminación del Producto
+            </h1>
+        </div>
+    </div>
+</div>
+
+<div class="grid lg:grid-cols-12 gap-8 mt-5">
+    <div class="lg:col-span-7 space-y-4">
+        <div class="bg-red-50 border border-red-100 p-6 rounded-xl flex gap-4">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                class="size-12 text-red-500 shrink-0">
+                <path
+                    d="m40-120 440-760 440 760H40Zm138-80h604L480-720 178-200Zm330.5-51.5Q520-263 520-280t-11.5-28.5Q497-320 480-320t-28.5 11.5Q440-297 440-280t11.5 28.5Q463-240 480-240t28.5-11.5ZM440-360h80v-200h-80v200Zm40-100Z" />
+            </svg>
+            <div>
+                <h3 class="text-red-900 font-bold text-lg mb-1">Atención: Acción Irreversible</h3>
+                <p class="text-red-700 text-sm leading-relaxed">
+                    Estás a punto de eliminar permanentemente este producto del catálogo. Esta acción no se puede
+                    deshacer y puede afectar existencias si hay ventas recientes, si bien mantenemos un borrado lógico
+                    en la base local.
+                </p>
+            </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-[28px] overflow-hidden shadow-sm p-4">
+            <div class="flex flex-col sm:flex-row gap-6 items-center">
+                <div
+                    class="w-32 h-32 sm:w-40 sm:h-40 shrink-0 rounded-[20px] overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center">
+                    {% if product.imagen_url %}
+                    <img src="{{ product.imagen_url }}" class="w-full h-full object-cover" alt="Imagen del producto">
+                    {% else %}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                        class="size-10 text-slate-400">
+                        <path
+                            d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z" />
+                    </svg>
+                    {% endif %}
+                </div>
+                <div class="space-y-3 flex-1 text-center sm:text-left w-full">
+                    <span
+                        class="inline-block px-3 py-1.5 bg-[#FFF3F0] text-[#FF8A65] font-bold text-[10px] tracking-wider uppercase rounded-full">
+                        {{ product.categoria.replace('_', ' ') }}
+                    </span>
+                    <h2 class="text-[#0d1b32] text-2xl sm:text-3xl font-extrabold tracking-tight">
+                        {{ product.nombre_producto }}
+                    </h2>
+
+                    <div class="flex gap-3 sm:gap-4 mt-2 justify-center sm:justify-start">
+                        <div class="flex-1 max-w-[140px] bg-[#f8f9fa] rounded-2xl p-4 text-left">
+                            <span class="block text-[11px] font-bold text-[#8695A4] mb-0.5">PRECIO</span>
+                            <span class="block text-lg font-bold text-[#0F172A]">${{
+                                "{:,.2f}".format(product.precio_venta or 0) }}</span>
+                        </div>
+                        <div class="flex-1 max-w-[140px] bg-[#f8f9fa] rounded-2xl p-4 text-left">
+                            <span class="block text-[11px] font-bold text-[#8695A4] mb-0.5">STOCK ACTUAL</span>
+                            <span class="text-lg font-bold text-[#0F172A] flex items-center gap-1.5">
+                                {{ product.stock|int }} <span
+                                    class="text-sm text-slate-500 font-semibold tracking-wide">unidades</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="lg:col-span-5">
+        <div class="bg-white border border-slate-200 rounded-xl p-8 sticky top-8 shadow-sm">
+            <h4 class="text-lg font-bold mb-6 text-slate-800">Confirmar acción</h4>
+            <form class="space-y-4" method="POST" action="{{ url_for('products.delete', product_id=product.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                    class="w-full py-4 px-6 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-3 shadow-lg active:scale-[0.98] bg-red-500 hover:bg-red-600 shadow-red-500/30 cursor-pointer mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-6">
+                        <path
+                            d="m376-300 104-104 104 104 56-56-104-104 104-104-56-56-104 104-104-104-56 56 104 104-104 104 56 56Zm-96 180q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520Zm-400 0v520-520Z" />
+                    </svg>
+                    Sí, eliminar completamente
+                </button>
+                <a href="{{ url_for('products.index') }}"
+                    class="w-full py-3 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer">
+                    Cancelar y Volver
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

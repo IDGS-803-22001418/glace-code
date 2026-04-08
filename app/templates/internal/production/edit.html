@@ -1,0 +1,91 @@
+{% extends "internal/base.html" %} {% block title %}Editar Orden{% endblock %} {% block content %}
+<div class="max-w-5xl mx-auto">
+
+    <a href="{{ url_for('production.index') }}" class="flex items-center text-gray-400 hover:text-primary transition-all mb-8 text-sm font-bold group w-fit cursor-pointer">
+        <svg class="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Volver a Control de Producción
+    </a>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="space-y-2 mb-6">
+        {% for category, message in messages %}
+        <div class="rounded-2xl border px-5 py-4 text-sm font-semibold flex items-start gap-3
+            {% if category == 'danger' %}border-red-200 bg-red-50 text-red-700
+            {% elif category == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-700
+            {% elif category == 'warning' %}border-amber-200 bg-amber-50 text-amber-700
+            {% else %}border-slate-200 bg-slate-50 text-slate-700{% endif %}">
+            <span class="mt-0.5 shrink-0">
+                {% if category == 'danger' %}⛔{% elif category == 'success' %}✅{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+            </span>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="mb-10">
+        <div class="flex items-center space-x-2 mb-2 text-primary">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            <span class="text-[10px] font-black uppercase tracking-[0.2em]">MAISON GLACÉ</span>
+        </div>
+        <h1 class="text-4xl font-black text-[#1a202c] tracking-tight">Modificar Orden · ORD-{{ '%03d'|format(task.id) }}</h1>
+    </div>
+
+    <form method="POST" action="{{ url_for('production.edit', id=task.id) }}" class="bg-white border border-gray-100 rounded-[2.5rem] p-12 shadow-sm space-y-10">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- Producto/Receta (solo lectura) -->
+        <div class="space-y-4">
+            <label class="text-[11px] font-black text-gray-300 uppercase tracking-widest ml-4">Producto / Receta</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 11v10"></path></svg>
+                </div>
+                <input type="text" disabled
+                    value="{{ (task.receta.product.nombre_producto + ' – ' + task.receta.nombre_variante) if task.receta and task.receta.product else '—' }}"
+                    class="block w-full pl-16 pr-10 py-5 bg-gray-100 border-none rounded-3xl text-gray-400 font-medium cursor-not-allowed">
+            </div>
+            <p class="text-xs text-gray-300 ml-4 italic">La receta no se puede cambiar. Para eso, crea una nueva orden.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div class="space-y-4">
+                <label class="text-[11px] font-black text-gray-300 uppercase tracking-widest ml-4">Prioridad</label>
+                <div class="flex p-1 bg-gray-50 rounded-3xl space-x-1">
+                    {% for p in ['Alta', 'Media', 'Baja'] %}
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="prioridad" value="{{ p }}" class="sr-only peer" {% if task.prioridad == p %}checked{% endif %}>
+                        <div class="cursor-pointer py-4 text-center rounded-[1.25rem] text-sm font-bold text-gray-400 peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm transition-all italic">{{ p }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <label class="text-[11px] font-black text-gray-300 uppercase tracking-widest ml-4">Fecha y Hora Límite</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <input type="datetime-local" name="fecha_limite"
+                        value="{{ task.fecha_limite.strftime('%Y-%m-%dT%H:%M') if task.fecha_limite else '' }}"
+                        class="block w-full pl-16 py-5 bg-gray-50 border-none rounded-3xl text-gray-600 focus:ring-4 focus:ring-primary/5 transition-all font-medium"
+                        required>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-4 pt-6">
+            <button type="submit" class="flex-1 py-5 bg-primary text-white font-black rounded-3xl shadow-xl shadow-primary/20 hover:scale-[1.01] transition-transform flex items-center justify-center cursor-pointer">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                Guardar Cambios
+            </button>
+            <a href="{{ url_for('production.index') }}" class="flex-1 py-5 bg-white border border-gray-100 text-gray-400 font-bold rounded-3xl flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
