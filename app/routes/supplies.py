@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from app import db
+from app import db, user_logger
 from app.models import Insumo, UnidadMedida
 from sqlalchemy import or_
 from app.forms import InsumoForm
-from flask_login import login_required # type: ignore
+from flask_login import login_required, current_user # type: ignore
 from app.decorators import roles_required
 
 categorias = [
@@ -83,6 +83,12 @@ def nuevo_insumo():
                         pass # Ignorar valores inválidos
             
             db.session.commit()
+            user_logger.log_action(
+                current_user,
+                module="Insumos",
+                action="Se registró un nuevo insumo",
+                success=True,
+            )
             
             flash('¡Insumo registrado con éxito en Maison Glacé!', 'success')
             return redirect(url_for('supplies.index'))
@@ -157,6 +163,12 @@ def modificar():
         
         db.session.add(insumo1)
         db.session.commit()
+        user_logger.log_action(
+            current_user,
+            module="Insumos",
+            action="Se actualizó un insumo",
+            success=True,
+        )
         flash('Insumo actualizado con éxito', 'success')
         return redirect(url_for('supplies.index'))
 
@@ -184,6 +196,12 @@ def eliminar_insumo():
             for conversion in insumo_del.conversiones:
                 conversion.is_active = False
             db.session.commit()
+            user_logger.log_action(
+                current_user,
+                module="Insumos",
+                action="Se eliminó un insumo",
+                success=True,
+            )
             flash(f'¡{insumo_del.nombre_insumo} eliminado permanentemente!', 'success')
             return redirect(url_for('supplies.index'))
         except Exception as e:

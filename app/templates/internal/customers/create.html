@@ -1,6 +1,6 @@
 {% extends "internal/base.html" %}
 
-{% block title %}Modificar Cliente{% endblock %}
+{% block title %}Nuevo Cliente{% endblock %}
 
 {% block content %}
 
@@ -24,7 +24,7 @@
                 <span class="text-xs font-bold tracking-widest uppercase text-primary/80">Maison Glacé</span>
             </div>
             <h1 class="text-3xl md:text-4xl font-extrabold leading-tight tracking-tight">
-                Modificar Cliente
+                Nuevo Cliente
             </h1>
         </div>
     </div>
@@ -44,7 +44,7 @@
 {% endwith %}
 
 <form class="grid grid-cols-1 lg:grid-cols-3 gap-6" method="POST"
-    action="{{ url_for('customers.edit', customer_id=customer.id) }}">
+    action="{{ url_for('customers.create') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="lg:col-span-2 flex flex-col gap-6">
         <section class="bg-white p-6 rounded-xl shadow-sm border border-primary/5">
@@ -66,14 +66,14 @@
                     <input
                         class="rounded-lg border-primary/10 bg-primary/5 focus:ring-2 focus:ring-primary/50 h-11 text-sm px-4 focus-visible:outline-none"
                         placeholder="Ej: Marcela Proust" type="text" id="nombre_completo" name="nombre_completo"
-                        value="{{ customer.user.nombre_completo if customer and customer.user else '' }}" required />
+                        value="{{ request.form.get('nombre_completo', '') }}" required />
                 </div>
                 <div class="flex flex-col gap-2">
                     <label class="text-sm font-semibold text-slate-700">Teléfono</label>
                     <input
                         class="rounded-lg border-primary/10 bg-primary/5 focus:ring-2 focus:ring-primary/50 h-11 text-sm px-4 focus-visible:outline-none"
                         placeholder="Ej: 0991234567" type="tel" id="telefono" name="telefono"
-                        value="{{ customer.telefono if customer and customer.telefono else '' }}" required
+                        value="{{ request.form.get('telefono', '') }}" required
                         inputmode="numeric" autocomplete="tel" pattern="\+?[0-9]{7,20}"
                         oninput="this.value = this.value.replace(/[^0-9+]/g, '').replace(/(?!^)\+/g, '');" />
                 </div>
@@ -84,7 +84,7 @@
                         class="rounded-lg border-primary/10 bg-primary/5 focus:ring-2 focus:ring-primary/50 h-11 text-sm px-4 focus-visible:outline-none"
                         placeholder="m.proust@ejemplo.com" type="email" id="correo_electronico"
                         name="correo_electronico"
-                        value="{{ customer.user.correo_electronico if customer and customer.user else '' }}" required />
+                        value="{{ request.form.get('correo_electronico', '') }}" required />
                 </div>
                 <div class="flex flex-col gap-2 md:col-span-2">
                     <label class="text-sm font-semibold text-slate-700">Dirección
@@ -92,7 +92,7 @@
                     <textarea
                         class="form-textarea rounded-lg border-primary/10 bg-primary/5 focus:ring-2 focus:ring-primary/50 text-sm p-4 focus-visible:outline-none resize-none h-24"
                         placeholder="Calle Falsa 123, Depto 402, Santiago" rows="4" id="direccion_despacho"
-                        name="direccion_despacho">{{ customer.direccion_despacho if customer and customer.direccion_despacho else '' }}</textarea>
+                        name="direccion_despacho">{{ request.form.get('direccion_despacho', '') }}</textarea>
                 </div>
             </div>
         </section>
@@ -101,35 +101,24 @@
         <section class="bg-white p-6 rounded-xl shadow-sm border border-primary/5">
             <div class="flex items-center gap-3 mb-6">
                 <div class="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" viewBox="0 0 24 24"
-                        fill="currentColor" class="size-6">
-                        <g>
-                            <path d="M0 0h24v24H0V0z" fill="none" />
-                            <path d="M0 0h24v24H0V0z" fill="none" />
-                        </g>
-                        <g>
-                            <path
-                                d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z" />
-                        </g>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                        <path d="M0 0h24v24H0V0z" fill="none" />
+                        <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
                     </svg>
                 </div>
-                <h2 class="text-slate-900 text-xl font-bold">Lealtad</h2>
+                <h2 class="text-slate-900 text-xl font-bold">Acceso</h2>
             </div>
-            <div class="flex flex-col gap-5">
-                <div class="flex flex-col gap-2">
-                    <label class="text-sm font-semibold text-slate-700">
-                        Puntos de Lealtad Acumulados
-                    </label>
-                    <input
-                        class="rounded-lg border-primary/10 bg-primary/5 focus:ring-2 focus:ring-primary/50 h-11 text-sm px-4 focus-visible:outline-none"
-                        placeholder="Ej: 1500" type="number" min="0" id="puntos_acumulados" name="puntos_acumulados"
-                        value="{{ customer.puntos_acumulados if customer and customer.puntos_acumulados is not none else 0 }}"
-                        required />
+            <div class="flex flex-col gap-3">
+                <p class="text-sm text-slate-600">
+                    El cliente podrá iniciar sesión en la plataforma con su correo electrónico.
+                </p>
+                <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 font-semibold">
+                    <span class="font-bold">Contraseña por defecto:</span> el nombre completo del cliente (sin espacios).
                 </div>
             </div>
         </section>
         <p class="text-xs text-slate-500 font-medium">
-            Nota: este formulario actualiza datos de cliente y usuario, pero no modifica la contraseña.
+            Nota: se creará una cuenta de usuario con rol de cliente. La contraseña inicial será el nombre del cliente.
         </p>
         <div class="flex flex-col gap-3">
             <button type="submit"
@@ -137,13 +126,13 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
                     <path d="M0 0h24v24H0V0z" fill="none" />
                     <path
-                        d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z" />
+                        d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                 </svg>
-                Modificar Cliente
+                Crear Cliente
             </button>
             <a href="{{ url_for('customers.index') }}"
                 class="w-full h-12 bg-transparent text-slate-500 font-bold rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2">
-                Descartar Cambios
+                Cancelar
             </a>
         </div>
     </div>

@@ -36,7 +36,7 @@
     <div class="bg-white rounded-2xl p-4 mb-6 shadow-sm border border-gray-100">
         <div class="relative">
             <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            <input type="text" id="searchInput" value="{{ search }}" placeholder="Buscar por ID, proveedor o estado..." class="w-full pl-12 pr-4 py-3 rounded-xl border-0 bg-gray-50 text-sm focus:ring-2 focus:ring-pink-200 focus:bg-white transition">
+            <input type="text" id="searchInput" value="{{ search }}" placeholder="Buscar por ID o Proveedor..." class="w-full pl-12 pr-4 py-3 rounded-xl border-0 bg-gray-50 text-sm focus:ring-2 focus:ring-pink-200 focus:bg-white transition">
         </div>
     </div>
 
@@ -141,7 +141,6 @@
                 <td class="px-4 py-4 text-sm font-semibold text-gray-800">${c.proveedor_nombre}</td>
                 <td class="px-4 py-4 text-sm text-gray-600">${c.fecha_orden}</td>
                 <td class="px-4 py-4 text-sm font-semibold text-gray-800">${formatMoney(c.total)}</td>
-                <td class="px-4 py-4">${statusBadge(c.estado_pedido)}</td>
                 <td class="px-4 py-4 text-center">
                     <div class="flex items-center justify-center space-x-3">
                         <a href="${verBaseUrl}/${c.id}" class="text-gray-400 hover:text-blue-500 transition" title="Ver detalle">

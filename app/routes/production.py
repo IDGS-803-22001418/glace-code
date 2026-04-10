@@ -1,51 +1,27 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user  # type: ignore
 from app.decorators import roles_required
-from app import db
+from app import db, user_logger
 from app.models import ProductionTask, Recipe, Product, RecipeDetail, Insumo
 from datetime import datetime, timezone
 
 production_bp = Blueprint('production', __name__)
 
 
-def _to_base_units(detail: RecipeDetail) -> tuple[float | None, str]:
+def _to_base_units(detail: RecipeDetail) -> tuple[float | None, str | None]:
     """
     Convierte la cantidad requerida por un detalle de receta a la unidad base del insumo.
-
-    El stock del Insumo siempre está en su `unidad_base`.
-    El detalle de receta puede especificar la cantidad en la unidad base
-    o en una unidad de conversión (ConversionUnidad).
-
-    Regla de ConversionUnidad:
-        factor_conversion = cuántas unidades_destino equivalen a 1 unidad_base
-        Ej: base=KG, destino=G, factor=1000  →  1 KG = 1000 G
-        Por tanto: cantidad_en_base = cantidad_destino / factor_conversion
-
-    Returns:
-        (cantidad_en_base, None) si la conversión es posible,
-        (None, mensaje_de_error)  si no hay mapeo disponible.
     """
-    insumo: Insumo = detail.insumo
-    detalle_unidad_id: int = detail.unidad_medida_id
-
-    # Caso 1 – la receta pide el insumo en su propia unidad base
-    if detalle_unidad_id == insumo.unidad_base_id:
-        return detail.cantidad, None
-
-    # Caso 2 – buscar una conversión activa que llegue a la unidad del detalle
-    for conv in insumo.conversiones:
-        if conv.is_active and conv.unidad_destino_id == detalle_unidad_id:
-            if not conv.factor_conversion or conv.factor_conversion == 0:
-                return None, (
-                    f"El factor de conversión para '{insumo.nombre_insumo}' "
-                    f"({detail.unidad_medida.abreviatura if detail.unidad_medida else '?'}) es cero."
-                )
-            cantidad_base = detail.cantidad / conv.factor_conversion
-            return cantidad_base, None
-
-    # Caso 3 – no existe mapeo
-    unidad_receta = detail.unidad_medida.abreviatura if detail.unidad_medida else f"id={detalle_unidad_id}"
+    cantidad_base = detail.cantidad_en_unidad_base()
+    
+    if cantidad_base is not None:
+        return cantidad_base, None
+    
+    # Si falla la conversión, armamos el mensaje de error
+    insumo = detail.insumo
+    unidad_receta = detail.unidad_medida.abreviatura if detail.unidad_medida else f"id={detail.unidad_medida_id}"
     unidad_base = insumo.unidad_base.abreviatura if insumo.unidad_base else f"id={insumo.unidad_base_id}"
+    
     return None, (
         f"No se encontró conversión para '{insumo.nombre_insumo}': "
         f"{unidad_receta} → {unidad_base}. "
@@ -184,6 +160,12 @@ def create():
             )
             db.session.add(nueva_tarea)
             db.session.commit()
+            user_logger.log_action(
+                current_user,
+                module="Producción",
+                action="Se creó una tarea de producción",
+                success=True,
+            )
 
             flash(
                 f'Orden de producción creada: {recipe.product.nombre_producto if recipe.product else ""} '
@@ -254,6 +236,12 @@ def edit(id: int):
             task.prioridad = prioridad
             task.fecha_limite = fecha_limite
             db.session.commit()
+            user_logger.log_action(
+                current_user,
+                module="Producción",
+                action="Se editó una tarea de producción",
+                success=True,
+            )
             flash('Orden de producción actualizada correctamente.', 'success')
             return redirect(url_for('production.index'))
         except Exception as e:
@@ -293,6 +281,12 @@ def delete(id: int):
             # --- Soft delete ---
             task.is_active = False
             db.session.commit()
+            user_logger.log_action(
+                current_user,
+                module="Producción",
+                action="Se eliminó una tarea de producción",
+                success=True,
+            )
 
             flash('Orden eliminada y existencias de insumos restauradas.', 'success')
         except Exception as e:
@@ -342,6 +336,12 @@ def status(id: int):
                 task.is_active = False
 
                 db.session.commit()
+                user_logger.log_action(
+                    current_user,
+                    module="Producción",
+                    action=f"Se completó la tarea de producción {id}",
+                    success=True,
+                )
 
                 nombre = task.receta.product.nombre_producto if task.receta and task.receta.product else 'Producto'
                 cantidad = int(task.receta.cantidad_producida) if task.receta else 0
@@ -352,6 +352,12 @@ def status(id: int):
             else:
                 task.estado = nuevo_estado
                 db.session.commit()
+                user_logger.log_action(
+                    current_user,
+                    module="Producción",
+                    action=f"Se actualizó estado de tarea de producción {id} a {nuevo_estado}",
+                    success=True,
+                )
                 flash(f'Estado actualizado a "{nuevo_estado}".', 'success')
 
             return redirect(url_for('production.index'))

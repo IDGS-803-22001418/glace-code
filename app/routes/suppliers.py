@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for
-from flask_login import login_required # type: ignore
+from flask_login import login_required, current_user # type: ignore
 from app.decorators import roles_required
 from app.models import Supplier
-from app import db
+from app import db, user_logger
 
 categorias = [
     'Materias Primas', 'Packaging', 'Lácteos', 'Chocolates',
@@ -18,7 +18,7 @@ def index():
     page = request.args.get('page', 1, type=int)
     search = request.args.get('search', '', type=str)
 
-    query = Supplier.query
+    query = Supplier.query.filter_by(is_active=True)
     if search:
         query = query.filter(
             (Supplier.nombre_empresa.ilike(f'%{search}%')) |
@@ -64,6 +64,12 @@ def create():
 
         db.session.add(nuevo_proveedor)
         db.session.commit()
+        user_logger.log_action(
+            current_user,
+            module="Proveedores",
+            action="Se creó un proveedor",
+            success=True,
+        )
 
         return redirect(url_for('suppliers.index'))
 
@@ -73,7 +79,7 @@ def create():
 @login_required
 @roles_required('admin')
 def edit(id):
-    supplier = db.get_or_404(Supplier, id)
+    supplier = Supplier.query.filter_by(id=id, is_active=True).first_or_404()
 
     if request.method == 'POST':
         supplier.nombre_empresa = request.form.get('nombre_empresa')
@@ -85,6 +91,12 @@ def edit(id):
         supplier.notas_adicionales = request.form.get('notas_adicionales')
 
         db.session.commit()
+        user_logger.log_action(
+            current_user,
+            module="Proveedores",
+            action="Se actualizó un proveedor",
+            success=True,
+        )
         return redirect(url_for('suppliers.index'))
 
     return render_template('internal/suppliers/edit.html', proveedor=supplier, categorias=categorias)
@@ -93,11 +105,17 @@ def edit(id):
 @login_required
 @roles_required('admin')
 def delete(id):
-    supplier = db.get_or_404(Supplier, id)
+    supplier = Supplier.query.filter_by(id=id, is_active=True).first_or_404()
 
     if request.method == 'POST':
-        db.session.delete(supplier)
+        supplier.is_active = False
         db.session.commit()
+        user_logger.log_action(
+            current_user,
+            module="Proveedores",
+            action="Se eliminó un proveedor",
+            success=True,
+        )
         return redirect(url_for('suppliers.index'))
 
     return render_template('internal/suppliers/delete.html', proveedor=supplier)

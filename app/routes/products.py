@@ -3,9 +3,9 @@ import os
 import uuid
 from flask import Blueprint, render_template, request, current_app, flash, redirect, url_for
 from werkzeug.utils import secure_filename
-from flask_login import login_required # type: ignore
+from flask_login import login_required, current_user # type: ignore
 from sqlalchemy import func, or_
-from app import db
+from app import db, user_logger
 from app.decorators import roles_required
 from app.models import Product
 
@@ -129,6 +129,12 @@ def create():
             
             db.session.add(new_product)
             db.session.commit()
+            user_logger.log_action(
+                current_user,
+                module="Productos",
+                action="Se creó un producto",
+                success=True,
+            )
             
             flash('Producto creado exitosamente.', 'success')
             return redirect(url_for('products.recipes', product_id=new_product.id))
@@ -202,6 +208,12 @@ def edit(product_id: int):
             product.descripcion = descripcion
             
             db.session.commit()
+            user_logger.log_action(
+                current_user,
+                module="Productos",
+                action="Se actualizó un producto",
+                success=True,
+            )
             
             flash('Producto actualizado exitosamente.', 'success')
             return redirect(url_for('products.index'))
@@ -234,6 +246,12 @@ def delete(product_id: int):
                     detail.is_active = False
                     
             db.session.commit()
+            user_logger.log_action(
+                current_user,
+                module="Productos",
+                action="Se eliminó un producto",
+                success=True,
+            )
             
             flash('Producto eliminado exitosamente.', 'success')
             return redirect(url_for('products.index'))
@@ -352,6 +370,12 @@ def create_recipe(product_id: int):
 
     try:
         db.session.commit()
+        user_logger.log_action(
+            current_user,
+            module="Recetas",
+            action="Se creó una receta",
+            success=True,
+        )
         flash('Receta creada exitosamente.', 'success')
     except Exception:
         db.session.rollback()
@@ -417,6 +441,12 @@ def edit_recipe(product_id: int, recipe_id: int):
 
     try:
         db.session.commit()
+        user_logger.log_action(
+            current_user,
+            module="Recetas",
+            action="Se modificó una receta",
+            success=True,
+        )
         flash('Receta modificada exitosamente.', 'success')
     except Exception as e:
         db.session.rollback()
@@ -441,6 +471,12 @@ def delete_recipe(recipe_id: int):
         for d in recipe.details:
             d.is_active = False
         db.session.commit()
+        user_logger.log_action(
+            current_user,
+            module="Recetas",
+            action="Se eliminó una receta",
+            success=True,
+        )
         flash('Receta eliminada exitosamente.', 'success')
     except Exception:
         db.session.rollback()

@@ -8,8 +8,9 @@ class UserRole:
     CUSTOMER = "customer"
     CHEF = "chef"
     SELLER = "seller"
+    SUPERADMIN = "superadmin"
 
-    CHOICES = (ADMIN, CUSTOMER, CHEF, SELLER)
+    CHOICES = (ADMIN, CUSTOMER, CHEF, SELLER, SUPERADMIN)
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -39,16 +40,19 @@ class User(db.Model, UserMixin):
         return self.rol_asignado == role
 
     def is_admin(self) -> bool:
-        return self.has_role(UserRole.ADMIN)
+        return self.has_role(UserRole.ADMIN) or self.has_role(UserRole.SUPERADMIN)
 
     def is_customer(self) -> bool:
-        return self.has_role(UserRole.CUSTOMER)
+        return self.has_role(UserRole.CUSTOMER) or self.has_role(UserRole.SUPERADMIN)
 
     def is_chef(self) -> bool:
-        return self.has_role(UserRole.CHEF)
+        return self.has_role(UserRole.CHEF) or self.has_role(UserRole.SUPERADMIN)
 
     def is_seller(self) -> bool:
-        return self.has_role(UserRole.SELLER)
+        return self.has_role(UserRole.SELLER) or self.has_role(UserRole.SUPERADMIN)
+
+    def is_superadmin(self) -> bool:
+        return self.has_role(UserRole.SUPERADMIN)
 
     @staticmethod
     def normalize_email(email: str) -> str:
@@ -107,6 +111,15 @@ class Insumo(db.Model):
     unidad_base = db.relationship('UnidadMedida')
     conversiones = db.relationship('ConversionUnidad', back_populates='insumo')
 
+    @property
+    def precio_estimado(self):
+        """Calcula el precio promedio de compra basado en el historial de compras activas."""
+        compras_activas = [detalle for detalle in self.compras if detalle.purchase and detalle.purchase.is_active]
+        if not compras_activas:
+            return 0.0
+        precios = [detalle.precio_unitario for detalle in compras_activas]
+        return round(sum(precios) / len(precios), 2)
+
 class ConversionUnidad(db.Model):
     __tablename__ = 'CONVERSION_UNIDAD'
     id = db.Column(db.Integer, primary_key=True)
@@ -130,6 +143,47 @@ class Product(db.Model):
 
     recipes = db.relationship('Recipe', back_populates='product')
 
+    @property
+    def costo_produccion_estimado(self):
+        """Calcula el costo promedio de producción basado en todas sus recetas activas."""
+        # Obtenemos recetas activas
+        active_recipes = [r for r in self.recipes if r.is_active]
+        if not active_recipes:
+            return 0.0
+
+        num_recipes = len(active_recipes)
+        # Diccionario para acumular (cantidad_base / rendimiento) por cada insumo
+        insumos_acumulados = {}  # insumo_id -> float
+
+        for recipe in active_recipes:
+            # Si cantidad_producida es 0 o None, evitamos división por cero usando 1.0 como fallback
+            rendimiento = recipe.cantidad_producida if recipe.cantidad_producida and recipe.cantidad_producida > 0 else 1.0
+            
+            for detail in recipe.details:
+                if not detail.is_active:
+                    continue
+                
+                cant_base = detail.cantidad_en_unidad_base()
+                if cant_base is None:
+                    continue
+                
+                # Cantidad de este insumo necesaria para producir 1 unidad del producto en esta receta
+                cant_unitaria = cant_base / rendimiento
+                insumos_acumulados[detail.insumo_id] = insumos_acumulados.get(detail.insumo_id, 0.0) + cant_unitaria
+
+        total_cost = 0.0
+        for insumo_id, suma_cantidades in insumos_acumulados.items():
+            # Promediamos la cantidad unitaria entre todas las recetas disponibles del producto
+            # (Si una receta no tiene el insumo, suma 0 al total, lo cual es correcto para el promedio)
+            avg_qty = suma_cantidades / num_recipes
+            
+            # Buscamos el insumo para usar su precio_estimado
+            insumo_obj = db.session.get(Insumo, insumo_id)
+            if insumo_obj:
+                total_cost += avg_qty * insumo_obj.precio_estimado
+
+        return round(total_cost, 2)
+
 class Recipe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
@@ -151,6 +205,23 @@ class RecipeDetail(db.Model):
     recipe = db.relationship('Recipe', back_populates='details')
     insumo = db.relationship('Insumo')
     unidad_medida = db.relationship('UnidadMedida')
+
+    def cantidad_en_unidad_base(self):
+        """Convierte la cantidad del detalle a la unidad base del insumo."""
+        if not self.insumo or not self.unidad_medida_id:
+            return None
+            
+        # Caso 1 – ya está en la unidad base
+        if self.unidad_medida_id == self.insumo.unidad_base_id:
+            return self.cantidad
+
+        # Caso 2 – buscar en las conversiones del insumo
+        for conv in self.insumo.conversiones:
+            if conv.is_active and conv.unidad_destino_id == self.unidad_medida_id:
+                if conv.factor_conversion and conv.factor_conversion != 0:
+                    return self.cantidad / conv.factor_conversion
+        
+        return None
     
 class Merma(db.Model):
     __tablename__ = 'MERMA'
@@ -194,11 +265,16 @@ class Venta(db.Model):
     fecha_hora_entrega = db.Column(db.DateTime)
     
     # Seguimiento del pedido
+    # Estados del pedido: 'Pendiente', 'En Producción', 'Listo', 'Entregado'
     estado = db.Column(db.String(20), default='Pendiente', index=True)
     
     # Relaciones
     detalles = db.relationship('DetalleVenta', backref='venta', lazy=True, cascade='all, delete-orphan')
     cliente = db.relationship('Customer')
+
+    @property
+    def total(self):
+        return sum(d.cantidad * d.precio_unitario_aplicado for d in self.detalles)
 
 
 class DetalleVenta(db.Model):
@@ -232,6 +308,7 @@ class Supplier(db.Model):
     correo_electronico = db.Column(db.String(100), nullable=False)
     direccion_fisica = db.Column(db.String(200))
     notas_adicionales = db.Column(db.Text)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
 
     purchases = db.relationship('Purchase', back_populates='supplier')
     
@@ -239,6 +316,7 @@ class Purchase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     supplier_id = db.Column(db.Integer, db.ForeignKey('supplier.id'), nullable=False)
     fecha_orden = db.Column(db.DateTime, default=db.func.current_timestamp())
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
 
     supplier = db.relationship('Supplier', back_populates='purchases')
     detalles = db.relationship('PurchaseDetail', back_populates='purchase', cascade='all, delete-orphan')
@@ -260,6 +338,22 @@ class PurchaseDetail(db.Model):
     unidad_medida_id = db.Column(db.Integer, db.ForeignKey('UNIDAD_MEDIDA.id'), nullable=False)
 
     purchase = db.relationship('Purchase', back_populates='detalles')
-    insumo = db.relationship('Insumo')
+    insumo = db.relationship('Insumo', backref='compras')
     unidad_medida = db.relationship('UnidadMedida')
 
+    def cantidad_en_unidad_base(self):
+        """Convierte la cantidad comprada a la unidad base del insumo."""
+        if not self.insumo or not self.unidad_medida_id:
+            return None
+            
+        # Caso 1 – ya está en la unidad base
+        if self.unidad_medida_id == self.insumo.unidad_base_id:
+            return self.cantidad
+
+        # Caso 2 – buscar en las conversiones del insumo
+        for conv in self.insumo.conversiones:
+            if conv.is_active and conv.unidad_destino_id == self.unidad_medida_id:
+                if conv.factor_conversion and conv.factor_conversion != 0:
+                    return self.cantidad / conv.factor_conversion
+        
+        return None

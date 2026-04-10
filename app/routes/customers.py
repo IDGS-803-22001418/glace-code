@@ -7,7 +7,7 @@ from flask_login import login_required, current_user # type: ignore
 from sqlalchemy import func, or_
 from app import db, user_logger
 from app.decorators import roles_required
-from app.models import Customer, User, Venta
+from app.models import Customer, User, UserRole, Venta
 
 
 class CustomerRow(TypedDict):
@@ -38,7 +38,7 @@ customers_bp = Blueprint('customers', __name__)
 
 @customers_bp.route('/')
 @login_required
-@roles_required('admin')
+@roles_required('admin', 'seller')
 def index():
     raw_query = (request.args.get('q') or '').strip()
     page = request.args.get('page', 1, type=int) or 1
@@ -232,6 +232,12 @@ def update_my_profile():
         customer.telefono = telefono
         customer.direccion_despacho = direccion_despacho
         db.session.commit()
+        user_logger.log_action(
+            current_user,
+            module="Clientes",
+            action="Cliente actualizó su perfil",
+            success=True,
+        )
         flash('Tus datos personales se actualizaron correctamente.', 'success')
     except Exception:
         db.session.rollback()
@@ -267,6 +273,12 @@ def update_my_password():
     try:
         user.set_password(new_password)
         db.session.commit()
+        user_logger.log_action(
+            current_user,
+            module="Clientes",
+            action="Cliente actualizó su contraseña",
+            success=True,
+        )
         flash('Tu contraseña fue actualizada correctamente.', 'success')
     except Exception:
         db.session.rollback()
@@ -276,7 +288,7 @@ def update_my_password():
     
 @customers_bp.route('/view/<int:customer_id>')
 @login_required
-@roles_required('admin')
+@roles_required('admin', 'seller')
 def view(customer_id: int):
     customer = db.session.query(Customer).filter_by(id=customer_id, is_active=True).first()
     if not customer:
@@ -301,9 +313,92 @@ def view(customer_id: int):
         history=history
     )
 
+@customers_bp.route('/create', methods=['GET', 'POST'])
+@login_required
+@roles_required('admin', 'seller')
+def create():
+    if request.method == 'POST':
+        nombre_completo = (request.form.get('nombre_completo') or '').strip()
+        correo_electronico = User.normalize_email(request.form.get('correo_electronico') or '')
+        telefono = (request.form.get('telefono') or '').strip()
+        direccion_despacho = (request.form.get('direccion_despacho') or '').strip()
+
+        if not nombre_completo:
+            flash('El nombre completo es obligatorio.', 'error')
+            return redirect(url_for('customers.create'))
+
+        if len(nombre_completo) > 150:
+            flash('El nombre completo no puede exceder 150 caracteres.', 'error')
+            return redirect(url_for('customers.create'))
+
+        if not _is_valid_email(correo_electronico):
+            flash('Ingresa un correo electrónico válido.', 'error')
+            return redirect(url_for('customers.create'))
+
+        if not telefono:
+            flash('El teléfono es obligatorio.', 'error')
+            return redirect(url_for('customers.create'))
+
+        if not _is_valid_phone(telefono):
+            flash('Ingresa un teléfono válido (solo números).', 'error')
+            return redirect(url_for('customers.create'))
+
+        if direccion_despacho and len(direccion_despacho) > 200:
+            flash('La dirección de despacho no puede exceder 200 caracteres.', 'error')
+            return redirect(url_for('customers.create'))
+
+        existing_user = db.session.query(User).filter_by(correo_electronico=correo_electronico).first()
+        if existing_user:
+            flash('Ya existe una cuenta con ese correo electrónico.', 'error')
+            return redirect(url_for('customers.create'))
+
+        # Contraseña por defecto: nombre completo sin espacios
+        default_password = nombre_completo.replace(' ', '')
+
+        try:
+            user = User(
+                nombre_completo=nombre_completo,
+                correo_electronico=correo_electronico,
+                password=default_password,
+                rol_asignado=UserRole.CUSTOMER,
+            )
+            db.session.add(user)
+            db.session.flush()  # ensure user.id
+
+            customer = Customer(
+                user=user,
+                telefono=telefono,
+                direccion_despacho=direccion_despacho,
+            )
+            db.session.add(customer)
+            db.session.commit()
+
+            user_logger.log_action(
+                current_user,
+                module="Clientes",
+                action=f"Se creó el cliente {user.nombre_completo} con ID {customer.id}",
+                success=True,
+            )
+
+            flash('Cliente creado exitosamente.', 'success')
+            return redirect(url_for('customers.index'))
+        except Exception:
+            db.session.rollback()
+            user_logger.log_action(
+                current_user,
+                module="Clientes",
+                action=f"Error al crear el cliente {nombre_completo}",
+                success=False,
+            )
+            flash('No se pudo crear el cliente. Intenta nuevamente.', 'error')
+            return redirect(url_for('customers.create'))
+
+    return render_template('internal/customers/create.html')
+
+
 @customers_bp.route('/edit/<int:customer_id>', methods=['GET', 'POST'])
 @login_required
-@roles_required('admin')
+@roles_required('admin', 'seller')
 def edit(customer_id: int):
     customer = db.session.query(Customer).filter_by(id=customer_id, is_active=True).first()
     if not customer:
@@ -337,11 +432,7 @@ def edit(customer_id: int):
             flash('Ingresa un teléfono válido (solo números).', 'error')
             return redirect(url_for('customers.edit', customer_id=customer_id))
 
-        if not direccion_despacho:
-            flash('La dirección de despacho es obligatoria.', 'error')
-            return redirect(url_for('customers.edit', customer_id=customer_id))
-
-        if len(direccion_despacho) > 200:
+        if direccion_despacho and len(direccion_despacho) > 200:
             flash('La dirección de despacho no puede exceder 200 caracteres.', 'error')
             return redirect(url_for('customers.edit', customer_id=customer_id))
 
@@ -396,7 +487,7 @@ def edit(customer_id: int):
 
 @customers_bp.route('/delete/<int:customer_id>', methods=['GET', 'POST'])
 @login_required
-@roles_required('admin')
+@roles_required('admin', 'seller')
 def delete(customer_id: int):
     customer = db.session.query(Customer).filter_by(id=customer_id, is_active=True).first()
     if not customer:

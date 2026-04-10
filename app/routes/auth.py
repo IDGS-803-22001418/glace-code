@@ -17,20 +17,20 @@ def login():
             login_user(user)
 
             # Log successful login
-            if not user.is_customer():
-                user_logger.log_action(
-                    current_user=user,
-                    module="Autenticación",
-                    action="Usuario inició sesión",
-                    success=True,
-                )
+            user_logger.log_action(
+                current_user=user,
+                module="Autenticación",
+                action="Usuario inició sesión",
+                success=True,
+            )
 
             next_page = request.args.get('next')
-            print(f"Next page: {next_page}")
             if next_page:
                 return redirect(next_page)
             elif user.is_customer():
                 return redirect(url_for('main.index'))
+            elif user.is_seller():
+                return redirect(url_for('pos.index'))
             else:
                 return redirect(url_for('main.internal'))
         else:
@@ -40,6 +40,8 @@ def login():
     if current_user.is_authenticated:
         if current_user.is_customer():
             return redirect(url_for('main.index'))
+        elif current_user.is_seller():
+            return redirect(url_for('pos.index'))
         else:
             return redirect(url_for('main.internal'))
     return render_template('login.html')
@@ -133,6 +135,13 @@ def register():
             )
             db.session.add(customer)
             db.session.commit()
+            
+            user_logger.log_action(
+                current_user=user,
+                module="Autenticación",
+                action="Usuario se registró (Cliente)",
+                success=True,
+            )
 
             login_user(user)
             return redirect(url_for('main.index'))

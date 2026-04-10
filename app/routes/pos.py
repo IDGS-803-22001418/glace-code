@@ -1,8 +1,8 @@
 import json
 from flask import Blueprint, render_template, flash, request, redirect, url_for
-from app import db
+from app import db, user_logger
 from app.models import Product, Customer, User, Venta, DetalleVenta
-from flask_login import login_required # type: ignore
+from flask_login import login_required, current_user # type: ignore
 from app.decorators import roles_required
 
 pos_bp = Blueprint('pos', __name__)
@@ -57,7 +57,7 @@ def register_sale():
             monto_cambio=monto_cambio,
             lugar_entrega='Tienda',
             fecha_hora_entrega=db.func.current_timestamp(),
-            estado='Completado'
+            estado='Entregado'
         )
         db.session.add(nueva_venta)
         db.session.flush()
@@ -84,6 +84,13 @@ def register_sale():
                 cliente.puntos_acumulados += puntos_ganados
         
         db.session.commit()
+        
+        user_logger.log_action(
+            current_user,
+            module="Punto de Venta",
+            action=f"Se registró una venta por {total}",
+            success=True,
+        )
         
         # Limpiar sessionStorage (desde el cliente, pero ya se redirige)
         flash('Venta registrada exitosamente', 'success')

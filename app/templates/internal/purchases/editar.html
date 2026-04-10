@@ -120,6 +120,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 row.querySelector('input[name="cantidad[]"]').value = det.cantidad;
                 row.querySelector('input[name="precio_unitario[]"]').value = det.precio_unitario;
                 actualizarUnidad(idx);
+                if (det.unidad_medida_id) {
+                    row.querySelector('select[name="unidad_medida_id[]"]').value = det.unidad_medida_id;
+                }
             }
         });
         recalcular();
@@ -158,7 +161,7 @@ function agregarProducto(initializing = false) {
     let options = '<option value="" data-unit="">Seleccionar...</option>';
     insumos.forEach(function(ins) {
         if (ins.categoria === currentCategoria) {
-            options += '<option value="' + ins.id + '" data-unit="' + ins.unidad_base + '">' + ins.nombre_insumo + '</option>';
+            options += '<option value="' + ins.id + '">' + ins.nombre_insumo + '</option>';
         }
     });
 
@@ -169,7 +172,7 @@ function agregarProducto(initializing = false) {
         '<td class="py-3 pr-3">' +
             '<div class="flex items-center space-x-2">' +
                 '<input type="number" name="cantidad[]" min="0.01" step="0.01" required class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm text-center focus:ring-2 focus:ring-pink-200" value="1" onchange="recalcular()" oninput="recalcular()">' +
-                '<span class="text-xs font-bold text-gray-400 unit-label min-w-[30px]"></span>' +
+                '<select name="unidad_medida_id[]" required class="text-xs px-2 py-1 rounded border border-gray-200 bg-white unit-select min-w-[70px]"></select>' +
             '</div>' +
         '</td>' +
         '<td class="py-3 pr-3">' +
@@ -192,9 +195,17 @@ function agregarProducto(initializing = false) {
 function actualizarUnidad(idx) {
     const row = document.getElementById('row-' + idx);
     const select = row.querySelector('select[name="insumo_id[]"]');
-    const option = select.options[select.selectedIndex];
-    const unit = option.getAttribute('data-unit');
-    row.querySelector('.unit-label').textContent = unit || '';
+    const unitSelect = row.querySelector('.unit-select');
+    
+    unitSelect.innerHTML = '';
+    if(!select.value) return;
+
+    const ins = insumos.find(i => i.id == select.value);
+    if(ins && ins.unidades_permitidas) {
+        ins.unidades_permitidas.forEach(u => {
+            unitSelect.innerHTML += '<option value="' + u.id + '">' + u.abreviatura + '</option>';
+        });
+    }
     recalcular();
 }
 

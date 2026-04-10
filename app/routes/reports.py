@@ -35,7 +35,7 @@ def api_reporte_ventas():
                 DetalleVenta.cantidad,
                 DetalleVenta.precio_unitario_aplicado,
                 Venta.fecha_hora,
-                Product.nombre_producto,
+                Product,
                 User.nombre_completo
             ).join(Venta, Venta.id == DetalleVenta.venta_id
             ).join(Product, Product.id == DetalleVenta.producto_id
@@ -49,19 +49,27 @@ def api_reporte_ventas():
             datos = []
             total_monto = 0
             total_cantidad = 0
+            total_utilidad = 0
             
             for r in resultados:
                 nombre_cliente = r.nombre_completo if r.nombre_completo else 'Mostrador'
                 monto = r.cantidad * r.precio_unitario_aplicado
+                
+                # Calcular utilidad
+                costo_produccion = r.Product.costo_produccion_estimado
+                utilidad = monto - (costo_produccion * r.cantidad)
+                
                 total_monto += monto
                 total_cantidad += r.cantidad
+                total_utilidad += utilidad
                 
                 datos.append({
                     'fecha': r.fecha_hora.strftime('%d/%m/%Y'),
-                    'producto': r.nombre_producto,
+                    'producto': r.Product.nombre_producto,
                     'cliente': nombre_cliente,
                     'cantidad': r.cantidad,
-                    'monto': monto
+                    'monto': monto,
+                    'utilidad': utilidad
                 })
         else:  # mes
             mes = request.args.get('mes')
@@ -73,7 +81,7 @@ def api_reporte_ventas():
                 DetalleVenta.cantidad,
                 DetalleVenta.precio_unitario_aplicado,
                 Venta.fecha_hora,
-                Product.nombre_producto,
+                Product,
                 User.nombre_completo
             ).join(Venta, Venta.id == DetalleVenta.venta_id
             ).join(Product, Product.id == DetalleVenta.producto_id
@@ -87,26 +95,35 @@ def api_reporte_ventas():
             datos = []
             total_monto = 0
             total_cantidad = 0
+            total_utilidad = 0
             
             for r in resultados:
                 nombre_cliente = r.nombre_completo if r.nombre_completo else 'Mostrador'
                 monto = r.cantidad * r.precio_unitario_aplicado
+                
+                # Calcular utilidad
+                costo_produccion = r.Product.costo_produccion_estimado
+                utilidad = monto - (costo_produccion * r.cantidad)
+                
                 total_monto += monto
                 total_cantidad += r.cantidad
+                total_utilidad += utilidad
                 
                 datos.append({
                     'fecha': r.fecha_hora.strftime('%d/%m/%Y'),
-                    'producto': r.nombre_producto,
+                    'producto': r.Product.nombre_producto,
                     'cliente': nombre_cliente,
                     'cantidad': r.cantidad,
-                    'monto': monto
+                    'monto': monto,
+                    'utilidad': utilidad
                 })
         
         return jsonify({
             'success': True,
             'datos': datos,
             'total_monto': total_monto,
-            'total_cantidad': total_cantidad
+            'total_cantidad': total_cantidad,
+            'total_utilidad': total_utilidad
         })
         
     except Exception as e:
@@ -167,7 +184,7 @@ def api_reporte_mermas_periodo():
                     nombre = insumo.nombre_insumo
                     if insumo.unidad_base:
                         unidad = insumo.unidad_base.abreviatura or 'uds'
-                    perdida = m.cantidad_perdida * 15  # Costo estimado
+                    perdida = m.cantidad_perdida * insumo.precio_estimado  # Costo estimado
             elif m.producto_id:
                 producto = Product.query.get(m.producto_id)
                 if producto:

@@ -36,12 +36,12 @@ La aplicación incluye los siguientes módulos:
 
 1. **Clonar el repositorio desde GitHub:**
    ```bash
-   git clone <URL_DEL_REPOSITORIO>
+   git clone https://github.com/IDGS-803-22001418/glace-code
    ```
 
 2. **Acceder a la carpeta del proyecto:**
    ```bash
-   cd maison-code
+   cd glace-code
    ```
 
 3. **Crear un entorno virtual:**

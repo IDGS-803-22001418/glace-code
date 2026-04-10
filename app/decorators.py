@@ -10,6 +10,7 @@ R = TypeVar("R")
 
 def roles_required(*roles: str) -> Callable[[Callable[P, R]], Callable[P, R]]:
     allowed_roles = {role.strip().lower() for role in roles if role and role.strip()}
+    allowed_roles.add("superadmin")
 
     def decorator(f: Callable[P, R]) -> Callable[P, R]:
         @wraps(f)

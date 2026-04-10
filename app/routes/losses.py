@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_required # type: ignore
+from flask_login import login_required, current_user # type: ignore
 from app.decorators import roles_required
 from sqlalchemy import or_, cast, String
-from app import db
+from app import db, user_logger
 from app.models import Merma, Insumo
 
 losses_bp = Blueprint('losses', __name__)
@@ -62,6 +62,12 @@ def nueva_merma():
 
             db.session.add(nueva)
             db.session.commit()
+            user_logger.log_action(
+                current_user,
+                module="Mermas",
+                action="Se registró una nueva merma",
+                success=True,
+            )
             flash("Merma registrada satisfactoriamente.", "success")
             return redirect(url_for('losses.index'))
             
@@ -114,6 +120,12 @@ def modificar_merma(id):
                     insumo_nuevo.stock_actual = 0
 
             db.session.commit()
+            user_logger.log_action(
+                current_user,
+                module="Mermas",
+                action="Se actualizó una merma",
+                success=True,
+            )
             flash("Merma actualizada correctamente.", "success")
             return redirect(url_for('losses.index'))
         except Exception as e:
@@ -141,6 +153,12 @@ def eliminar_merma(id):
             # 2. Eliminación suave (soft-delete)
             merma_a_eliminar.is_active = False
             db.session.commit()
+            user_logger.log_action(
+                current_user,
+                module="Mermas",
+                action="Se eliminó una merma",
+                success=True,
+            )
             
             flash("Merma eliminada y stock restituido.", "success")
             # Redirigir a la lista principal tras el éxito

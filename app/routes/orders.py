@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, jsonify, flash
 from flask_login import login_required, current_user  # type: ignore
 from app.decorators import roles_required
-from app import db
+from app import db, user_logger
 from app.models import Product, Venta, DetalleVenta, CustomOrder, Customer, Recipe, ProductionTask, RecipeDetail, Insumo
 from datetime import datetime, timezone, timedelta
 
@@ -96,6 +96,12 @@ def start_production(venta_id: int):
         
         venta.estado = 'En Producción'
         db.session.commit()
+        user_logger.log_action(
+            current_user,
+            module="Pedidos",
+            action=f"Se actualizó el estado del pedido {venta_id} (En Producción)",
+            success=True,
+        )
         flash('Pedido en producción', 'success')
         
     except Exception as e:
@@ -113,6 +119,12 @@ def mark_as_ready(venta_id: int):
     if venta:
         venta.estado = 'Listo'
         db.session.commit()
+        user_logger.log_action(
+            current_user,
+            module="Pedidos",
+            action=f"Se actualizó el estado del pedido {venta_id} (Listo)",
+            success=True,
+        )
         flash('Pedido marcado como listo para entrega.', 'success')
     return redirect(url_for('orders.index'))
 
@@ -125,6 +137,12 @@ def mark_as_delivered(venta_id: int):
     if venta:
         venta.estado = 'Entregado'
         db.session.commit()
+        user_logger.log_action(
+            current_user,
+            module="Pedidos",
+            action=f"Se finalizó el pedido {venta_id} (Entregado)",
+            success=True,
+        )
         flash('Venta finalizada: Pedido entregado al cliente.', 'success')
     return redirect(url_for('orders.index'))
 
@@ -323,6 +341,13 @@ def checkout():
         customer.puntos_acumulados += puntos_ganados
 
         db.session.commit()
+        
+        user_logger.log_action(
+            current_user,
+            module="Pedidos",
+            action=f"Se creó un nuevo pedido ({nueva_venta.id})",
+            success=True,
+        )
         
         # Clear cart
         _save_cart([])
