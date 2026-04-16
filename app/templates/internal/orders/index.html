@@ -3,11 +3,14 @@
 {% block title %}Gestión de Pedidos Personalizados{% endblock %}
 
 {% block content %}
-<header class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-solid border-primary/10 pb-6 mb-8">
+<header
+    class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-solid border-primary/10 pb-6 mb-8">
     <div class="flex items-center gap-3">
-        <div class="flex items-center justify-center size-12 rounded-xl bg-primary text-white shadow-lg shadow-primary/20">
+        <div
+            class="flex items-center justify-center size-12 rounded-xl bg-primary text-white shadow-lg shadow-primary/20">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-7">
-                <path d="M160-80q-17 0-28.5-11.5T120-120v-200q0-33 23.5-56.5T200-400v-160q0-33 23.5-56.5T280-640h160v-58q-18-12-29-29t-11-41q0-15 6-29.5t18-26.5l56-56 56 56q12 12 18 26.5t6 29.5q0 24-11 41t-29 29v58h160q33 0 56.5 23.5T760-560v160q33 0 56.5 23.5T840-320v200q0 17-11.5 28.5T800-80H160Zm120-320h400v-160H280v160Zm-80 240h560v-160H200v160Z" />
+                <path
+                    d="M160-80q-17 0-28.5-11.5T120-120v-200q0-33 23.5-56.5T200-400v-160q0-33 23.5-56.5T280-640h160v-58q-18-12-29-29t-11-41q0-15 6-29.5t18-26.5l56-56 56 56q12 12 18 26.5t6 29.5q0 24-11 41t-29 29v58h160q33 0 56.5 23.5T760-560v160q33 0 56.5 23.5T840-320v200q0 17-11.5 28.5T800-80H160Zm120-320h400v-160H280v160Zm-80 240h560v-160H200v160Z" />
             </svg>
         </div>
         <div>
@@ -15,13 +18,14 @@
             <p class="text-slate-500 text-sm font-medium">Gestiona la producción y entrega de pedidos especiales.</p>
         </div>
     </div>
-    
+
     <div class="flex items-center gap-2">
         <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider">
             {{ sales|length }} Pedidos Activos
         </span>
         {% if current_user.is_seller() %}
-        <a href="{{ url_for('orders.create_instore') }}" class="px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-dark transition">
+        <a href="{{ url_for('orders.create_instore') }}"
+            class="px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-dark transition">
             Registrar pedido en tienda
         </a>
         {% endif %}
@@ -29,148 +33,217 @@
 </header>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-            <div class="mb-6 p-4 rounded-xl flex items-center gap-3 {% if category == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-100{% elif category == 'warning' %}bg-amber-50 text-amber-700 border border-amber-100{% else %}bg-rose-50 text-rose-700 border border-rose-100{% endif %}">
-                <div class="size-2 rounded-full {% if category == 'success' %}bg-emerald-500{% elif category == 'warning' %}bg-amber-500{% else %}bg-rose-500{% endif %} animate-pulse"></div>
-                <span class="text-sm font-bold uppercase tracking-wide">{{ message }}</span>
-            </div>
-        {% endfor %}
-    {% endif %}
+{% if messages %}
+{% for category, message in messages %}
+<div
+    class="mb-6 p-4 rounded-xl flex items-center gap-3 {% if category == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-100{% elif category == 'warning' %}bg-amber-50 text-amber-700 border border-amber-100{% else %}bg-rose-50 text-rose-700 border border-rose-100{% endif %}">
+    <div
+        class="size-2 rounded-full {% if category == 'success' %}bg-emerald-500{% elif category == 'warning' %}bg-amber-500{% else %}bg-rose-500{% endif %} animate-pulse">
+    </div>
+    <span class="text-sm font-bold uppercase tracking-wide">{{ message }}</span>
+</div>
+{% endfor %}
+{% endif %}
 {% endwith %}
 
 <div class="grid grid-cols-2 gap-6">
     {% if sales %}
-        {% for venta in sales %}
-        <div class="bg-white rounded-2xl border border-primary/10 shadow-sm overflow-hidden transition-all hover:shadow-md">
-            <div class="p-6 flex flex-col lg:flex-row gap-6">
-                <!-- Order Header Info -->
-                <div class="grow flex flex-col md:flex-row gap-6">
-                    <div class="flex flex-col">
-                        <span class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">ID Pedido</span>
-                        <span class="text-xl font-black text-slate-900">#{{ "%05d"|format(venta.id) }}</span>
-                    </div>
-                    
-                    <div class="flex flex-col">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Cliente</span>
-                        <span class="text-sm font-bold text-slate-700 uppercase">{{ venta.cliente.user.nombre_completo if venta.cliente and venta.cliente.user else 'Cliente Invitado' }}</span>
-                    </div>
-
-                    <div class="flex flex-col">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Entrega Solicitada</span>
-                        <span class="text-sm font-bold text-slate-700">
-                            {{ venta.fecha_hora_entrega.strftime('%d/%m/%Y %H:%M') if venta.fecha_hora_entrega else 'No especificada' }}
-                        </span>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                            Lugar: {{ 'Tienda' if venta.lugar_entrega == 'Tienda' else venta.cliente.direccion_despacho }}
-                        </span>
-                    </div>
+    {% for venta in sales %}
+    <div class="bg-white rounded-2xl border border-primary/10 shadow-sm overflow-hidden transition-all hover:shadow-md">
+        <div class="p-6 flex flex-col lg:flex-row gap-6">
+            <!-- Order Header Info -->
+            <div class="grow flex flex-col md:flex-row gap-6">
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">ID Pedido</span>
+                    <span class="text-xl font-black text-slate-900">#{{ "%05d"|format(venta.id) }}</span>
                 </div>
 
-                <!-- Status Badge -->
-                <div class="flex items-center lg:justify-end gap-3 min-w-45">
-                    {% if venta.estado == 'Pendiente' %}
-                        <span class="px-4 py-2 rounded-full bg-amber-100 text-amber-700 text-xs font-black uppercase tracking-widest border border-amber-200">
-                            {{ venta.estado }}
-                        </span>
-                    {% elif venta.estado == 'En Producción' %}
-                        <span class="px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-xs font-black uppercase tracking-widest border border-blue-200">
-                            {{ venta.estado }}
-                        </span>
-                    {% elif venta.estado == 'Listo' %}
-                        <span class="px-4 py-2 rounded-full bg-emerald-100 text-emerald-700 text-xs font-black uppercase tracking-widest border border-emerald-200">
-                            {{ venta.estado }}
-                        </span>
-                    {% else %}
-                        <span class="px-4 py-2 rounded-full bg-slate-100 text-slate-500 text-xs font-black uppercase tracking-widest border border-slate-200">
-                            {{ venta.estado }}
-                        </span>
-                    {% endif %}
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Cliente</span>
+                    <span class="text-sm font-bold text-slate-700 uppercase">{{ venta.cliente.user.nombre_completo if
+                        venta.cliente and venta.cliente.user else 'Cliente Invitado' }}</span>
+                </div>
+
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Entrega
+                        Solicitada</span>
+                    <span class="text-sm font-bold text-slate-700">
+                        {{ venta.fecha_hora_entrega.strftime('%d/%m/%Y %H:%M') if venta.fecha_hora_entrega else 'No
+                        especificada' }}
+                    </span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                        Lugar: {{ 'Tienda' if venta.lugar_entrega == 'Tienda' else venta.cliente.direccion_despacho }}
+                    </span>
                 </div>
             </div>
 
-            <!-- Items Details -->
-            <div class="bg-slate-50/50 border-t border-primary/5 p-6">
-                <h4 class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4">Detalles del Pedido</h4>
-                <div class="space-y-4">
-                    {% for detalle in venta.detalles %}
-                    <div class="flex flex-col md:flex-row md:items-start gap-4 p-4 rounded-xl bg-white border border-primary/5 shadow-sm">
-                        <div class="size-16 rounded-lg bg-slate-100 overflow-hidden shrink-0">
-                            {% if detalle.producto.imagen_url %}
-                                <img src="{{ detalle.producto.imagen_url }}" class="w-full h-full object-cover">
-                            {% else %}
-                                <div class="w-full h-full flex items-center justify-center text-slate-300">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-8"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z"/></svg>
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="grow">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <span class="text-sm font-black text-slate-900 block">{{ detalle.producto.nombre_producto }}</span>
-                                    <span class="text-xs font-bold text-slate-500 uppercase">{{ detalle.cantidad }} unidades</span>
-                                </div>
-                            </div>
-                            
-                            {% if detalle.custom_order %}
-                            <div class="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-[9px] font-black text-primary uppercase tracking-widest">Evento:</span>
-                                    <span class="text-[10px] font-bold text-slate-700 uppercase bg-white px-2 py-0.5 rounded border border-primary/10">{{ detalle.custom_order.tipo_evento or 'General' }}</span>
-                                </div>
-                                <p class="text-xs text-slate-600 italic">"{{ detalle.custom_order.instrucciones_decoracion or 'Sin instrucciones específicas.' }}"</p>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Action Bar -->
-            <div class="p-6 flex justify-end gap-3 bg-white border-t border-primary/5">
-                {% if venta.estado == 'Pendiente' and current_user.is_chef() %}
-                <form action="{{ url_for('orders.start_production', venta_id=venta.id) }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="group relative px-6 py-3 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest overflow-hidden transition-all hover:bg-primary-dark active:scale-95 cursor-pointer">
-                        <span class="relative z-10 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-4"><path d="M80-80v-481l280-119v80l200-80v120h320v480H80Zm80-80h640v-320H480v-82l-200 80v-78l-120 53v347Zm280-80h80v-160h-80v160Zm-160 0h80v-160h-80v160Zm320 0h80v-160h-80v160Z"/></svg>
-                            Comnezar Preparación
-                        </span>
-                        <div class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                    </button>
-                </form>
-                {% elif venta.estado == 'En Producción' and  current_user.is_chef() %}
-                <form action="{{ url_for('orders.mark_as_ready', venta_id=venta.id) }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="group relative px-6 py-3 rounded-xl bg-emerald-500 text-white font-black text-xs uppercase tracking-widest overflow-hidden transition-all hover:bg-emerald-600 active:scale-95 cursor-pointer">
-                        <span class="relative z-10 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-4"><path d="m424-312 282-282-56-56-226 226-114-114-56 56 170 170ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Z"/></svg>
-                            Marcar como Listo
-                        </span>
-                    </button>
-                </form>
-                {% elif venta.estado == 'Listo' and current_user.is_seller() %}
-                <form action="{{ url_for('orders.mark_as_delivered', venta_id=venta.id) }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="group relative px-6 py-3 rounded-xl bg-blue-500 text-white font-black text-xs uppercase tracking-widest overflow-hidden transition-all hover:bg-blue-600 active:scale-95 cursor-pointer">
-                        <span class="relative z-10 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-4"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm-60-140L230-490l56-56 134 134 284-284 56 56-340 340Z"/></svg>
-                            Registrar Entrega
-                        </span>
-                    </button>
-                </form>
+            <!-- Status Badge -->
+            <div class="flex items-center lg:justify-end gap-3 min-w-45">
+                {% if venta.estado == 'Pendiente' %}
+                <span
+                    class="px-4 py-2 rounded-full bg-amber-100 text-amber-700 text-xs font-black uppercase tracking-widest border border-amber-200">
+                    {{ venta.estado }}
+                </span>
+                {% elif venta.estado == 'En Producción' %}
+                <span
+                    class="px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-xs font-black uppercase tracking-widest border border-blue-200">
+                    {{ venta.estado }}
+                </span>
+                {% elif venta.estado == 'Listo' %}
+                <span
+                    class="px-4 py-2 rounded-full bg-emerald-100 text-emerald-700 text-xs font-black uppercase tracking-widest border border-emerald-200">
+                    {{ venta.estado }}
+                </span>
+                {% elif venta.estado == 'Cancelado' %}
+                <span
+                    class="px-4 py-2 rounded-full bg-red-100 text-red-700 text-xs font-black uppercase tracking-widest border border-red-200">
+                    {{ venta.estado }}
+                </span>
+                {% else %}
+                <span
+                    class="px-4 py-2 rounded-full bg-slate-100 text-slate-500 text-xs font-black uppercase tracking-widest border border-slate-200">
+                    {{ venta.estado }}
+                </span>
                 {% endif %}
             </div>
         </div>
-        {% endfor %}
+
+        <!-- Items Details -->
+        <div class="bg-slate-50/50 border-t border-primary/5 p-6">
+            <h4 class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4">Detalles del Pedido</h4>
+            <div class="space-y-4">
+                {% for detalle in venta.detalles %}
+                <div
+                    class="flex flex-col md:flex-row md:items-start gap-4 p-4 rounded-xl bg-white border border-primary/5 shadow-sm">
+                    <div class="size-16 rounded-lg bg-slate-100 overflow-hidden shrink-0">
+                        {% if detalle.producto.imagen_url %}
+                        <img src="{{ detalle.producto.imagen_url }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <div class="w-full h-full flex items-center justify-center text-slate-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                                class="size-8">
+                                <path
+                                    d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z" />
+                            </svg>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="grow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-sm font-black text-slate-900 block">{{
+                                    detalle.producto.nombre_producto }}</span>
+                                <span class="text-xs font-bold text-slate-500 uppercase">{{ detalle.cantidad }}
+                                    unidades</span>
+                            </div>
+                        </div>
+
+                        {% if detalle.custom_order %}
+                        <div class="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span
+                                    class="text-[9px] font-black text-primary uppercase tracking-widest">Evento:</span>
+                                <span
+                                    class="text-[10px] font-bold text-slate-700 uppercase bg-white px-2 py-0.5 rounded border border-primary/10">{{
+                                    detalle.custom_order.tipo_evento or 'General' }}</span>
+                            </div>
+                            <p class="text-xs text-slate-600 italic">"{{ detalle.custom_order.instrucciones_decoracion
+                                or 'Sin instrucciones específicas.' }}"</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="p-6 flex justify-end gap-3 bg-white border-t border-primary/5">
+            {% if venta.estado == 'Pendiente' %}
+            {% if current_user.is_admin() %}
+            <form action="{{ url_for('orders.cancel_order', venta_id=venta.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                    class="group relative px-6 py-3 rounded-xl bg-red-500 text-white font-black text-xs uppercase tracking-widest overflow-hidden transition-all hover:bg-red-600 active:scale-95 cursor-pointer">
+                    <span class="relative z-10 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                            class="size-4">
+                            <path
+                                d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
+                        </svg>
+                        Cancelar Pedido
+                    </span>
+                    <div
+                        class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                    </div>
+                </button>
+            </form>
+            {% endif %}
+            {% if current_user.is_chef() %}
+            <form action="{{ url_for('orders.start_production', venta_id=venta.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                    class="group relative px-6 py-3 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest overflow-hidden transition-all hover:bg-primary-dark active:scale-95 cursor-pointer">
+                    <span class="relative z-10 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                            class="size-4">
+                            <path
+                                d="M80-80v-481l280-119v80l200-80v120h320v480H80Zm80-80h640v-320H480v-82l-200 80v-78l-120 53v347Zm280-80h80v-160h-80v160Zm-160 0h80v-160h-80v160Zm320 0h80v-160h-80v160Z" />
+                        </svg>
+                        Comnezar Preparación
+                    </span>
+                    <div
+                        class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                    </div>
+                </button>
+            </form>
+            {% endif %}
+            {% elif venta.estado == 'En Producción' and current_user.is_chef() %}
+            <form action="{{ url_for('orders.mark_as_ready', venta_id=venta.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                    class="group relative px-6 py-3 rounded-xl bg-emerald-500 text-white font-black text-xs uppercase tracking-widest overflow-hidden transition-all hover:bg-emerald-600 active:scale-95 cursor-pointer">
+                    <span class="relative z-10 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                            class="size-4">
+                            <path
+                                d="m424-312 282-282-56-56-226 226-114-114-56 56 170 170ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Z" />
+                        </svg>
+                        Marcar como Listo
+                    </span>
+                </button>
+            </form>
+            {% elif venta.estado == 'Listo' and current_user.is_seller() %}
+            <form action="{{ url_for('orders.mark_as_delivered', venta_id=venta.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                    class="group relative px-6 py-3 rounded-xl bg-blue-500 text-white font-black text-xs uppercase tracking-widest overflow-hidden transition-all hover:bg-blue-600 active:scale-95 cursor-pointer">
+                    <span class="relative z-10 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"
+                            class="size-4">
+                            <path
+                                d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm-60-140L230-490l56-56 134 134 284-284 56 56-340 340Z" />
+                        </svg>
+                        Registrar Entrega
+                    </span>
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
     {% else %}
-    <div class="flex flex-col items-center justify-center p-20 text-center bg-white rounded-3xl border-2 border-dashed border-primary/10">
+    <div
+        class="flex flex-col items-center justify-center p-20 text-center bg-white rounded-3xl border-2 border-dashed border-primary/10">
         <div class="size-20 rounded-full bg-primary/5 flex items-center justify-center text-primary/20 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-12"><path d="M160-80q-17 0-28.5-11.5T120-120v-200q0-33 23.5-56.5T200-400v-160q0-33 23.5-56.5T280-640h160v-58q-18-12-29-29t-11-41q0-15 6-29.5t18-26.5l56-56 56 56q12 12 18 26.5t6 29.5q0 24-11 41t-29 29v58h160q33 0 56.5 23.5T760-560v160q33 0 56.5 23.5T840-320v200q0 17-11.5 28.5T800-80H160Zm0-80h640-640Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-12">
+                <path
+                    d="M160-80q-17 0-28.5-11.5T120-120v-200q0-33 23.5-56.5T200-400v-160q0-33 23.5-56.5T280-640h160v-58q-18-12-29-29t-11-41q0-15 6-29.5t18-26.5l56-56 56 56q12 12 18 26.5t6 29.5q0 24-11 41t-29 29v58h160q33 0 56.5 23.5T760-560v160q33 0 56.5 23.5T840-320v200q0 17-11.5 28.5T800-80H160Zm0-80h640-640Z" />
+            </svg>
         </div>
         <h3 class="text-xl font-bold text-slate-800 mb-1">Sin pedidos personalizados</h3>
-        <p class="text-slate-500 max-w-sm">Aquí aparecerán los pedidos especiales que los clientes realicen a través de la tienda en línea.</p>
+        <p class="text-slate-500 max-w-sm">Aquí aparecerán los pedidos especiales que los clientes realicen a través de
+            la tienda en línea.</p>
     </div>
     {% endif %}
 </div>

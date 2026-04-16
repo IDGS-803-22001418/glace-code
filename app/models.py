@@ -1,7 +1,7 @@
 from flask_login import UserMixin  # type: ignore
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db, login_manager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta
 
 class UserRole:
     ADMIN = "admin"
@@ -117,8 +117,10 @@ class Insumo(db.Model):
 
     @property
     def precio_estimado(self):
-        """Calcula el precio promedio de compra basado en el historial de compras activas."""
-        compras_activas = [detalle for detalle in self.compras if detalle.purchase and detalle.purchase.is_active]
+        """Calcula el precio promedio de compra basado en el historial de compras activas en el último mes."""
+        now = datetime.now()
+        last_month = now - timedelta(days=30)
+        compras_activas = [detalle for detalle in self.compras if detalle.purchase and detalle.purchase.is_active and detalle.purchase.fecha_orden >= last_month]
         if not compras_activas:
             return 0.0
         precios = [detalle.precio_unitario for detalle in compras_activas]
@@ -236,7 +238,7 @@ class Merma(db.Model):
     cantidad_perdida = db.Column(db.Float, nullable=False)
     causa = db.Column(db.String(255))
     notas_adicionales = db.Column(db.Text)
-    fecha_registro = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    fecha_registro = db.Column(db.DateTime, default=lambda: datetime.now(), index=True)
     is_active = db.Column(db.Boolean, default=True, nullable=False, index=True)
     
     insumo = db.relationship('Insumo', backref='mermas_registradas')
@@ -257,7 +259,7 @@ class ProductionTask(db.Model):
     prioridad = db.Column(db.String(10), default='Media', index=True)
     
     fecha_limite = db.Column(db.DateTime, nullable=False, index=True)
-    fecha_creacion = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    fecha_creacion = db.Column(db.DateTime, default=lambda: datetime.now())
     is_active = db.Column(db.Boolean, default=True, nullable=False, index=True)
 
     # Relación para obtener el nombre del producto, tiempo estimado y cantidad a producir
@@ -270,7 +272,7 @@ class ProductionTask(db.Model):
 class Venta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     cliente_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=True, index=True)
-    fecha_hora = db.Column(db.DateTime, default=db.func.current_timestamp(), index=True)
+    fecha_hora = db.Column(db.DateTime, default=datetime.now, index=True)
     metodo_pago = db.Column(db.String(50))  # efectivo o tarjeta
     monto_recibido = db.Column(db.Float, default=0)
     monto_cambio = db.Column(db.Float, default=0)
@@ -280,7 +282,7 @@ class Venta(db.Model):
     fecha_hora_entrega = db.Column(db.DateTime)
     
     # Seguimiento del pedido
-    # Estados del pedido: 'Pendiente', 'En Producción', 'Listo', 'Entregado'
+    # Estados del pedido: 'Pendiente', 'En Producción', 'Listo', 'Entregado', 'Cancelado'
     estado = db.Column(db.String(20), default='Pendiente', index=True)
     
     # Relaciones
@@ -330,7 +332,7 @@ class Supplier(db.Model):
 class Purchase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     supplier_id = db.Column(db.Integer, db.ForeignKey('supplier.id'), nullable=False, index=True)
-    fecha_orden = db.Column(db.DateTime, default=db.func.current_timestamp(), index=True)
+    fecha_orden = db.Column(db.DateTime, default=datetime.now, index=True)
     is_active = db.Column(db.Boolean, default=True, nullable=False, index=True)
 
     supplier = db.relationship('Supplier', back_populates='purchases')

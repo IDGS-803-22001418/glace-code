@@ -3,7 +3,7 @@ from flask_login import login_required, current_user  # type: ignore
 from app.decorators import roles_required
 from app import db, user_logger
 from app.models import ProductionTask, Recipe, Product, RecipeDetail, Insumo
-from datetime import datetime, timezone
+from datetime import datetime
 
 production_bp = Blueprint('production', __name__)
 
@@ -92,7 +92,6 @@ def create():
 
         try:
             fecha_limite = datetime.strptime(fecha_limite_str, '%Y-%m-%dT%H:%M')
-            fecha_limite = fecha_limite.replace(tzinfo=timezone.utc)
         except ValueError:
             flash('Formato de fecha inválido.', 'danger')
             return redirect(url_for('production.create'))
@@ -240,7 +239,6 @@ def edit(id: int):
 
         try:
             fecha_limite = datetime.strptime(fecha_limite_str, '%Y-%m-%dT%H:%M')
-            fecha_limite = fecha_limite.replace(tzinfo=timezone.utc)
         except ValueError:
             flash('Formato de fecha inválido.', 'danger')
             return redirect(url_for('production.edit', id=id))
@@ -267,7 +265,7 @@ def edit(id: int):
 
 @production_bp.route('/delete/<int:id>', methods=['GET', 'POST'])
 @login_required
-@roles_required('seller')
+@roles_required('chef', 'seller')
 def delete(id: int):
     task = db.session.get(ProductionTask, id)
     if not task or not task.is_active:

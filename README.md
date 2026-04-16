@@ -23,7 +23,167 @@ La aplicación incluye los siguientes módulos:
 
 ---
 
-## 🚀 Instalación y Ejecución
+## �️ Modelo de Base de Datos
+
+A continuación se presenta el diagrama entidad-relación de la base de datos utilizada por la aplicación:
+
+```mermaid
+erDiagram
+    User {
+        int id PK
+        string nombre_completo
+        string correo_electronico
+        string password
+        string rol_asignado
+        boolean is_active
+    }
+    Customer {
+        int id PK
+        int user_id FK
+        string telefono
+        string direccion_despacho
+        int puntos_acumulados
+        boolean is_active
+    }
+    UnidadMedida {
+        int id PK
+        string nombre
+        string abreviatura
+    }
+    Insumo {
+        int id PK
+        string nombre_insumo
+        string categoria
+        float stock_actual
+        float stock_minimo_alerta
+        boolean is_active
+        int unidad_base_id FK
+    }
+    ConversionUnidad {
+        int id PK
+        float factor_conversion
+        int insumo_id FK
+        int unidad_destino_id FK
+        boolean is_active
+    }
+    Product {
+        int id PK
+        string nombre_producto
+        string categoria
+        float precio_venta
+        int stock
+        int pedido_minimo
+        string imagen_url
+        string descripcion
+        boolean is_active
+    }
+    Recipe {
+        int id PK
+        int product_id FK
+        string nombre_variante
+        float cantidad_producida
+        int tiempo_estimado_min
+        boolean is_active
+    }
+    RecipeDetail {
+        int recipe_id PK
+        int insumo_id PK
+        float cantidad
+        int unidad_medida_id FK
+        boolean is_active
+    }
+    Merma {
+        int id PK
+        int insumo_id FK
+        int producto_id FK
+        float cantidad_perdida
+        string causa
+        text notas_adicionales
+        datetime fecha_registro
+        boolean is_active
+    }
+    ProductionTask {
+        int id PK
+        int receta_id FK
+        string estado
+        string prioridad
+        datetime fecha_limite
+        datetime fecha_creacion
+        boolean is_active
+    }
+    Venta {
+        int id PK
+        int cliente_id FK
+        datetime fecha_hora
+        string metodo_pago
+        float monto_recibido
+        float monto_cambio
+        string lugar_entrega
+        datetime fecha_hora_entrega
+        string estado
+    }
+    DetalleVenta {
+        int id PK
+        int venta_id FK
+        int producto_id FK
+        int cantidad
+        float precio_unitario_aplicado
+    }
+    CustomOrder {
+        int id PK
+        int detalle_venta_id FK
+        string tipo_evento
+        text instrucciones_decoracion
+    }
+    Supplier {
+        int id PK
+        string nombre_empresa
+        string categoria_insumos
+        string nombre_contacto
+        string telefono
+        string correo_electronico
+        string direccion_fisica
+        text notas_adicionales
+        boolean is_active
+    }
+    Purchase {
+        int id PK
+        int supplier_id FK
+        datetime fecha_orden
+        boolean is_active
+    }
+    PurchaseDetail {
+        int id PK
+        int purchase_id FK
+        int insumo_id FK
+        float cantidad
+        float precio_unitario
+        int unidad_medida_id FK
+    }
+    User ||--o| Customer : "has"
+    Insumo ||--o{ ConversionUnidad : "has conversions"
+    Product ||--o{ Recipe : "has recipes"
+    Recipe ||--o{ RecipeDetail : "has details"
+    RecipeDetail }o--|| Insumo : "uses"
+    RecipeDetail }o--|| UnidadMedida : "measured in"
+    Merma }o--|| Insumo : "affects"
+    Merma }o--|| Product : "affects"
+    ProductionTask }o--|| Recipe : "for"
+    Venta }o--|| Customer : "by"
+    Venta ||--o{ DetalleVenta : "has"
+    DetalleVenta }o--|| Product : "sells"
+    DetalleVenta ||--o| CustomOrder : "has"
+    Supplier ||--o{ Purchase : "supplies"
+    Purchase ||--o{ PurchaseDetail : "has"
+    PurchaseDetail }o--|| Insumo : "buys"
+    PurchaseDetail }o--|| UnidadMedida : "measured in"
+    ConversionUnidad }o--|| UnidadMedida : "to"
+    Insumo }o--|| UnidadMedida : "base unit"
+```
+
+---
+
+## �🚀 Instalación y Ejecución
 
 ### Requisitos Previos
 
@@ -130,3 +290,12 @@ DATABASE_URL=<tu_url_de_base_de_datos>
 - Si realizas cambios en los estilos, vuelve a ejecutar el comando de Tailwind para regenerar `app/static/dist/output.css`
 - Para detener la aplicación, presiona `Ctrl + C` en la terminal
 - Consulta la documentación de Flask para más información: https://flask.palletsprojects.com/
+
+---
+
+## Respaldos y restauraciones
+
+```sh
+mysqldump -u backups_glace_code -p glace_code --databases --set-gtid-purged=OFF > ~/backup.sql
+mysql -u backups_glace_code -p < ~/backup.sql
+```

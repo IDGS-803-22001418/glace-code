@@ -4,11 +4,12 @@ from app.decorators import roles_required
 from app.models import Purchase, Supplier, Insumo, PurchaseDetail, UnidadMedida
 from app import db, user_logger
 from sqlalchemy import or_
+from datetime import datetime
 
 compras_bp = Blueprint('purchases', __name__)
 
 @compras_bp.route('/')
-@roles_required('admin', 'chef', 'seller')
+@roles_required('admin', 'chef')
 @login_required
 def index():
     page = request.args.get('page', 1, type=int)
@@ -34,7 +35,7 @@ def index():
                          search=search)
 
 @compras_bp.route('/api/buscar')
-@roles_required('admin', 'chef', 'seller')
+@roles_required('admin', 'chef')
 @login_required
 def api_buscar():
     page = request.args.get('page', 1, type=int)
@@ -69,7 +70,7 @@ def api_buscar():
     })
 
 @compras_bp.route('/crear', methods=['GET', 'POST'])
-@roles_required('admin', 'chef', 'seller')
+@roles_required('admin', 'chef')
 @login_required
 def crear():
     if request.method == 'POST':
@@ -86,7 +87,7 @@ def crear():
             
             nueva_compra = Purchase(
                 supplier_id=int(proveedor_id),
-                fecha_orden=db.func.current_timestamp(),
+                fecha_orden=datetime.now(),
             )
             
             db.session.add(nueva_compra)
@@ -172,7 +173,7 @@ def crear():
                          insumos=insumos_json)
 
 @compras_bp.route('/ver/<int:id>')
-@roles_required('admin', 'chef', 'seller')
+@roles_required('admin', 'chef')
 @login_required
 def ver(id):
     compra = Purchase.query.filter_by(id=id, is_active=True).first()
@@ -182,7 +183,7 @@ def ver(id):
     return render_template('internal/purchases/ver.html', compra=compra)
 
 @compras_bp.route('/editar/<int:id>', methods=['GET', 'POST'])
-@roles_required('admin', 'chef', 'seller')
+@roles_required('admin', 'chef')
 @login_required
 def editar(id):
     compra = Purchase.query.filter_by(id=id, is_active=True).first()
@@ -310,7 +311,7 @@ def editar(id):
                          insumos=insumos_json)
 
 @compras_bp.route('/eliminar/<int:id>', methods=['GET', 'POST'])
-@roles_required('admin', 'chef', 'seller')
+@roles_required('admin', 'chef')
 @login_required
 def eliminar(id):
     compra = Purchase.query.filter_by(id=id, is_active=True).first()

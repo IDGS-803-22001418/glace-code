@@ -4,55 +4,41 @@
 
 {% block content %}
 
-<main class="flex-1 p-6 max-w-7xl w-full mx-auto">
-    <div class="mb-6">
-        <p class="text-[10px] font-bold text-primary uppercase tracking-widest mb-0.5">Maison Glacé</p>
-        <h1 class="text-2xl font-bold text-gray-800">Reportes y Analítica</h1>
-        <p class="text-xs text-gray-400 mt-0.5">Visualiza ventas y mermas por período</p>
+<main class="flex-1 p-4 max-w-7xl w-full mx-auto">
+    <div class="mb-3">
+        <p class="text-[10px] font-bold text-[#E91E8C] uppercase tracking-widest mb-0.5">Maison Glacé</p>
+        <h1 class="text-xl font-bold text-gray-800">Reportes y Analítica</h1>
+        <p class="text-xs text-gray-400 mt-0.5">Visualiza ventas, mermas y ganancias por período</p>
     </div>
 
-    <!-- Tabs -->
-    <div class="flex gap-2 mb-6 border-b border-gray-200">
-        <button onclick="cambiarTab('ventas')" id="tabVentasBtn"
-            class="tab-btn px-6 py-2.5 text-sm font-semibold rounded-t-xl bg-primary text-white">
-            Ventas
-        </button>
-        <button onclick="cambiarTab('mermas')" id="tabMermasBtn"
-            class="tab-btn px-6 py-2.5 text-sm font-semibold rounded-t-xl text-gray-500 hover:text-gray-700">
-            Mermas
-        </button>
-    </div>
-
-    <!-- Panel de Ventas -->
-    <div id="panelVentas" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-        <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
-            <div class="flex gap-3">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Tipo de Reporte</label>
-                    <select id="tipoVentas"
-                        class="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-200">
-                        <option value="semana">Por Semana</option>
-                        <option value="mes">Por Mes</option>
-                    </select>
-                </div>
-                <div id="fechaVentasContainer">
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Seleccionar</label>
-                    <select id="semanaVentas"
-                        class="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-200 hidden"></select>
-                    <select id="mesVentas"
-                        class="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-200 hidden"></select>
-                </div>
-                <div class="flex items-end">
-                    <button onclick="cargarVentas()"
-                        class="px-5 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-pink-700 transition-colors">
-                        Consultar
-                    </button>
-                </div>
+    <!-- Selector de período (compacto) -->
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-3 mb-3">
+        <div class="flex flex-wrap items-end gap-3">
+            <div>
+                <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Tipo de Reporte</label>
+                <select id="tipoPeriodo"
+                    class="px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-200">
+                    <option value="semana">Por Semana</option>
+                    <option value="mes">Por Mes</option>
+                </select>
             </div>
             <div>
-                <button onclick="descargarPDFVentas()"
-                    class="px-5 py-2 rounded-xl border border-gray-300 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Seleccionar Período</label>
+                <select id="semanaSelect"
+                    class="px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-200"></select>
+                <select id="mesSelect"
+                    class="px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-200 hidden"></select>
+            </div>
+            <div>
+                <button onclick="cargarTodosLosReportes()"
+                    class="px-4 py-1.5 rounded-lg bg-[#E91E8C] text-white text-xs font-semibold hover:bg-pink-700 transition-colors">
+                    Consultar
+                </button>
+            </div>
+            <div class="ml-auto">
+                <button onclick="descargarPDFCompleto()"
+                    class="px-4 py-1.5 rounded-lg border border-gray-300 text-gray-600 text-xs font-semibold hover:bg-gray-50 transition-colors flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 10v6m0 0l-3-3m3 3l3-3M4 4h16v16H4z" />
                     </svg>
@@ -60,125 +46,91 @@
                 </button>
             </div>
         </div>
-
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm" id="tablaVentas">
-                <thead>
-                    <tr class="border-b border-gray-200 bg-gray-50">
-                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500">Fecha</th>
-                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500">Producto</th>
-                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500">Cliente</th>
-                        <th class="text-right py-3 px-4 text-xs font-semibold text-gray-500">Cantidad</th>
-                        <th class="text-right py-3 px-4 text-xs font-semibold text-gray-500">Monto</th>
-                        <th class="text-right py-3 px-4 text-xs font-semibold text-gray-500">Utilidad</th>
-                    </tr>
-                </thead>
-                <tbody id="ventasBody">
-                    <tr>
-                        <td colspan="6" class="text-center py-8 text-gray-400">Selecciona un período para consultar</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Total separado -->
-        <div class="mt-6 flex justify-end">
-            <div class="bg-gray-50 rounded-xl p-4 min-w-[250px] border border-gray-200">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm text-gray-600">Total de productos vendidos:</span>
-                    <span class="text-lg font-bold text-gray-800" id="totalCantidadVentas">0</span>
-                </div>
-                <div class="flex justify-between items-center py-2 border-t border-gray-200">
-                    <span class="text-sm font-semibold text-gray-700">Monto total:</span>
-                    <span class="text-xl font-bold text-gray-800" id="totalMontoVentas">$0.00</span>
-                </div>
-                <div class="flex justify-between items-center pt-2 border-t border-gray-200">
-                    <span class="text-sm font-semibold text-gray-700">Utilidad total:</span>
-                    <span class="text-xl font-bold text-primary" id="totalUtilidadVentas">$0.00</span>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <!-- Panel de Mermas -->
-    <div id="panelMermas" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hidden">
-        <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
-            <div class="flex gap-3">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Tipo de Reporte</label>
-                    <select id="tipoMermas"
-                        class="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-200">
-                        <option value="semana">Por Semana</option>
-                        <option value="mes">Por Mes</option>
-                    </select>
-                </div>
-                <div id="fechaMermasContainer">
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Seleccionar</label>
-                    <select id="semanaMermas"
-                        class="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-200 hidden"></select>
-                    <select id="mesMermas"
-                        class="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-200 hidden"></select>
-                </div>
-                <div class="flex items-end">
-                    <button onclick="cargarMermas()"
-                        class="px-5 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-pink-700 transition-colors">
-                        Consultar
-                    </button>
+    <!-- Grid de 3 columnas para las gráficas -->
+    <div class="grid grid-cols-3 gap-3">
+        <!-- Gráfica de Ventas -->
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-3">
+            <h2 class="text-sm font-bold text-gray-800 mb-2">Ventas</h2>
+            <div class="flex justify-center mb-2">
+                <div style="width: 100%; height: 180px;">
+                    <canvas id="graficaVentas"></canvas>
                 </div>
             </div>
-            <div>
-                <button onclick="descargarPDFMermas()"
-                    class="px-5 py-2 rounded-xl border border-gray-300 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 10v6m0 0l-3-3m3 3l3-3M4 4h16v16H4z" />
-                    </svg>
-                    Descargar PDF
-                </button>
+            <div class="bg-gray-50 rounded-lg p-2 border border-gray-200">
+                <div class="flex justify-between items-center text-[10px]">
+                    <span class="text-gray-600">Productos:</span>
+                    <span class="font-bold text-gray-800" id="totalCantidadVentas">0</span>
+                </div>
+                <div class="flex justify-between items-center pt-1 mt-1 border-t border-gray-200">
+                    <span class="text-[10px] font-semibold text-gray-700">Monto Total:</span>
+                    <span class="text-sm font-bold text-[#E91E8C]" id="totalMontoVentas">$0.00</span>
+                </div>
+                <div class="flex justify-between items-center pt-1 mt-1 border-t border-gray-200">
+                    <span class="text-[10px] font-semibold text-gray-700">Utilidad Total:</span>
+                    <span class="text-sm font-bold text-[#E91E8C]" id="totalUtilidadVentas">$0.00</span>
+                </div>
             </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm" id="tablaMermas">
-                <thead>
-                    <tr class="border-b border-gray-200 bg-gray-50">
-                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500">Fecha</th>
-                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500">Producto/Insumo</th>
-                        <th class="text-right py-3 px-4 text-xs font-semibold text-gray-500">Cantidad</th>
-                        <th class="text-right py-3 px-4 text-xs font-semibold text-gray-500">Unidad</th>
-                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500">Causa</th>
-                        <th class="text-right py-3 px-4 text-xs font-semibold text-gray-500">Pérdida $</th>
-                    </tr>
-                </thead>
-                <tbody id="mermasBody">
-                    <tr>
-                        <td colspan="6" class="text-center py-8 text-gray-400">Selecciona un período para consultar</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Total separado -->
-        <div class="mt-6 flex justify-end">
-            <div class="bg-red-50 rounded-xl p-4 min-w-[250px] border border-red-100">
+        <!-- Gráfica de Mermas -->
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-3">
+            <h2 class="text-sm font-bold text-gray-800 mb-2">Mermas</h2>
+            <div class="flex justify-center mb-2">
+                <div style="width: 100%; height: 180px;">
+                    <canvas id="graficaMermas"></canvas>
+                </div>
+            </div>
+            <div class="bg-red-50 rounded-lg p-2 border border-red-100">
                 <div class="flex justify-between items-center">
-                    <span class="text-sm font-semibold text-gray-700">Total de pérdidas:</span>
-                    <span class="text-xl font-bold text-red-600" id="totalPerdidasMermas">$0.00</span>
+                    <span class="text-[10px] font-semibold text-gray-700">Total pérdidas:</span>
+                    <span class="text-sm font-bold text-red-600" id="totalPerdidasMermas">$0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfica de Ganancias -->
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-3">
+            <h2 class="text-sm font-bold text-gray-800 mb-2">Ganancias</h2>
+            <div class="flex justify-center mb-2">
+                <div style="width: 100%; height: 180px;">
+                    <canvas id="graficaGanancias"></canvas>
+                </div>
+            </div>
+            <div class="bg-green-50 rounded-lg p-2 border border-green-100">
+                <div class="flex justify-between items-center text-[10px]">
+                    <span class="text-gray-600">Utilidad:</span>
+                    <span class="font-bold text-gray-800" id="ventasParaGanancia">$0.00</span>
+                </div>
+                <div class="flex justify-between items-center text-[10px]">
+                    <span class="text-gray-600">Mermas:</span>
+                    <span class="font-bold text-red-600" id="mermasParaGanancia">$0.00</span>
+                </div>
+                <div class="flex justify-between items-center pt-1 mt-1 border-t border-gray-200">
+                    <span class="text-[10px] font-semibold text-gray-700">Ganancia:</span>
+                    <span class="text-sm font-bold text-green-600" id="totalGanancia">$0.00</span>
                 </div>
             </div>
         </div>
     </div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <script>
+    // Variables globales
     let datosVentasActuales = [];
     let datosMermasActuales = [];
     let totalMontoVentas = 0;
     let totalUtilidadVentas = 0;
     let totalCantidadVentas = 0;
     let totalPerdidasMermas = 0;
+    let totalGanancia = 0;
+    let graficaVentas = null;
+    let graficaMermas = null;
+    let graficaGanancias = null;
 
     // ==================== UTILERÍAS ====================
     function getSemanaActual(date) {
@@ -187,25 +139,19 @@
         return Math.ceil((dias + inicio.getDay() + 1) / 7);
     }
 
-    function getFechaInicioFinSemana(año, semanaNum) {
+    function formatearRangoSemana(año, semanaNum) {
         const inicio = new Date(año, 0, 1);
         const diaSemana = inicio.getDay();
         const ajuste = (semanaNum - 1) * 7;
         const inicioSemana = new Date(año, 0, 1 + ajuste - diaSemana + 1);
         const finSemana = new Date(inicioSemana);
         finSemana.setDate(inicioSemana.getDate() + 6);
-        return { inicio: inicioSemana, fin: finSemana };
-    }
-
-    function formatearRangoSemana(año, semanaNum) {
-        const { inicio, fin } = getFechaInicioFinSemana(año, semanaNum);
         const formatFecha = (date) => `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
-        return `Semana ${semanaNum} (${formatFecha(inicio)} al ${formatFecha(fin)})`;
+        return `Semana ${semanaNum} (${formatFecha(inicioSemana)} al ${formatFecha(finSemana)})`;
     }
 
-    function cargarOpcionesSemanas(selectId) {
-        const select = document.getElementById(selectId);
-        if (!select) return;
+    function cargarOpcionesSemanas() {
+        const select = document.getElementById('semanaSelect');
         select.innerHTML = '';
         const año = new Date().getFullYear();
         for (let semana = 1; semana <= 52; semana++) {
@@ -216,9 +162,8 @@
         }
     }
 
-    function cargarOpcionesMeses(selectId) {
-        const select = document.getElementById(selectId);
-        if (!select) return;
+    function cargarOpcionesMeses() {
+        const select = document.getElementById('mesSelect');
         select.innerHTML = '';
         const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         const año = new Date().getFullYear();
@@ -230,60 +175,37 @@
         }
     }
 
-    // ==================== CAMBIAR TAB ====================
-    function cambiarTab(tab) {
-        const panelVentas = document.getElementById('panelVentas');
-        const panelMermas = document.getElementById('panelMermas');
-        const tabVentasBtn = document.getElementById('tabVentasBtn');
-        const tabMermasBtn = document.getElementById('tabMermasBtn');
-
-        if (tab === 'ventas') {
-            panelVentas.classList.remove('hidden');
-            panelMermas.classList.add('hidden');
-            tabVentasBtn.classList.add('bg-primary', 'text-white');
-            tabVentasBtn.classList.remove('text-gray-500');
-            tabMermasBtn.classList.remove('bg-primary', 'text-white');
-            tabMermasBtn.classList.add('text-gray-500');
-            cargarVentas();
-        } else {
-            panelVentas.classList.add('hidden');
-            panelMermas.classList.remove('hidden');
-            tabMermasBtn.classList.add('bg-primary', 'text-white');
-            tabMermasBtn.classList.remove('text-gray-500');
-            tabVentasBtn.classList.remove('bg-primary', 'text-white');
-            tabVentasBtn.classList.add('text-gray-500');
-            cargarMermas();
-        }
-    }
-
-    // ==================== VENTAS ====================
-    function configurarFechasVentas() {
-        const tipo = document.getElementById('tipoVentas').value;
-        const semanaSelect = document.getElementById('semanaVentas');
-        const mesSelect = document.getElementById('mesVentas');
+    // ==================== CONFIGURAR PERÍODO ====================
+    function configurarPeriodo() {
+        const tipo = document.getElementById('tipoPeriodo').value;
+        const semanaSelect = document.getElementById('semanaSelect');
+        const mesSelect = document.getElementById('mesSelect');
 
         if (tipo === 'semana') {
             semanaSelect.classList.remove('hidden');
             mesSelect.classList.add('hidden');
-            cargarOpcionesSemanas('semanaVentas');
+            cargarOpcionesSemanas();
         } else {
             semanaSelect.classList.add('hidden');
             mesSelect.classList.remove('hidden');
-            cargarOpcionesMeses('mesVentas');
+            cargarOpcionesMeses();
         }
     }
 
+    // ==================== CARGAR TODOS LOS REPORTES ====================
+    function cargarTodosLosReportes() {
+        cargarVentas();
+        cargarMermas();
+    }
+
     function cargarVentas() {
-        const tipo = document.getElementById('tipoVentas').value;
+        const tipo = document.getElementById('tipoPeriodo').value;
         let url = '/reports/api/reporte-ventas?tipo=' + tipo;
 
         if (tipo === 'semana') {
-            const semana = document.getElementById('semanaVentas').value;
-            console.log(semana);
-            url += '&semana=' + semana;
+            url += '&semana=' + document.getElementById('semanaSelect').value;
         } else {
-            const mes = document.getElementById('mesVentas').value;
-            url += '&mes=' + mes;
+            url += '&mes=' + document.getElementById('mesSelect').value;
         }
 
         fetch(url)
@@ -294,164 +216,24 @@
                     totalMontoVentas = data.total_monto;
                     totalUtilidadVentas = data.total_utilidad;
                     totalCantidadVentas = data.total_cantidad;
-                    renderizarTablaVentas(data.datos);
+                    renderizarGraficaVentas(data.datos, tipo);
+                    document.getElementById('totalCantidadVentas').innerText = totalCantidadVentas;
+                    document.getElementById('totalMontoVentas').innerText = `$${totalMontoVentas.toFixed(2)}`;
+                    document.getElementById('totalUtilidadVentas').innerText = `$${totalUtilidadVentas.toFixed(2)}`;
+                    actualizarGanancias();
                 }
             })
             .catch(error => console.error('Error:', error));
     }
 
-    function renderizarTablaVentas(datos) {
-        const tbody = document.getElementById('ventasBody');
-
-        if (!datos || datos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">No hay ventas registradas en este período</td></tr>';
-            document.getElementById('totalCantidadVentas').innerText = '0';
-            document.getElementById('totalMontoVentas').innerText = '$0.00';
-            document.getElementById('totalUtilidadVentas').innerText = '$0.00';
-            return;
-        }
-
-        let html = '';
-        datos.forEach(item => {
-            html += `
-            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                <td class="py-3 px-4 text-gray-700">${item.fecha}</td>
-                <td class="py-3 px-4 text-gray-700">${item.producto}</td>
-                <td class="py-3 px-4 text-gray-700">${item.cliente}</td>
-                <td class="py-3 px-4 text-right text-gray-700">${item.cantidad}</td>
-                <td class="py-3 px-4 text-right font-medium text-gray-800">$${item.monto.toFixed(2)}</td>
-                <td class="py-3 px-4 text-right font-medium text-primary">$${item.utilidad.toFixed(2)}</td>
-            </tr>
-        `;
-        });
-
-        tbody.innerHTML = html;
-        document.getElementById('totalCantidadVentas').innerText = totalCantidadVentas;
-        document.getElementById('totalMontoVentas').innerText = `$${totalMontoVentas.toFixed(2)}`;
-        document.getElementById('totalUtilidadVentas').innerText = `$${totalUtilidadVentas.toFixed(2)}`;
-    }
-
-    function descargarPDFVentas() {
-        const tipo = document.getElementById('tipoVentas').value;
-        let periodo = '';
-        if (tipo === 'semana') {
-            const semanaVal = document.getElementById('semanaVentas').value;
-            const año = semanaVal.split('-')[0];
-            const semanaNum = parseInt(semanaVal.split('-W')[1]);
-            periodo = formatearRangoSemana(parseInt(año), semanaNum);
-        } else {
-            periodo = document.getElementById('mesVentas').options[document.getElementById('mesVentas').selectedIndex]?.text || 'Mes seleccionado';
-        }
-
-        // 1. Guardamos el contenido original de tu página para restaurarlo luego
-        const contenidoOriginal = document.body.innerHTML;
-
-        // 2. Creamos el HTML del reporte con diseño FULL WIDTH
-        const htmlReporte = `
-        <div id="reporte-full-container" style="width: 1000px; margin: 0 auto; padding: 40px; background: white; font-family: Arial, sans-serif;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 6px solid #E91E8C; padding-bottom: 20px; margin-bottom: 30px;">
-                <div>
-                    <h1 style="color: #E91E8C; font-size: 45px; margin: 0; font-weight: 900; letter-spacing: 3px;">MAISON GLACÉ</h1>
-                    <p style="margin: 5px 0 0; color: #666; font-size: 14px; text-transform: uppercase;">Reporte de Gestión Operativa</p>
-                </div>
-                <div style="text-align: right;">
-                    <h2 style="margin: 0; color: #333; font-size: 22px;">REPORTE DE VENTAS</h2>
-                    <p style="margin: 5px 0; font-size: 18px; color: #E91E8C; font-weight: bold;">${periodo}</p>
-                </div>
-            </div>
-
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; table-layout: fixed;">
-                <thead>
-                    <tr style="background-color: #E91E8C; color: white;">
-                        <th style="padding: 15px; border: 1px solid #E91E8C; text-align: left; width: 15%;">FECHA</th>
-                        <th style="padding: 15px; border: 1px solid #E91E8C; text-align: left; width: 35%;">PRODUCTO</th>
-                        <th style="padding: 15px; border: 1px solid #E91E8C; text-align: left; width: 25%;">CLIENTE</th>
-                        <th style="padding: 15px; border: 1px solid #E91E8C; text-align: center; width: 8%;">CANT.</th>
-                        <th style="padding: 15px; border: 1px solid #E91E8C; text-align: right; width: 11%;">MONTO</th>
-                        <th style="padding: 15px; border: 1px solid #E91E8C; text-align: right; width: 11%;">UTILIDAD</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${datosVentasActuales.map(i => `
-                        <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 12px; font-size: 13px;">${i.fecha}</td>
-                            <td style="padding: 12px; font-size: 13px; font-weight: bold;">${i.producto}</td>
-                            <td style="padding: 12px; font-size: 13px;">${i.cliente}</td>
-                            <td style="padding: 12px; font-size: 13px; text-align: center;">${i.cantidad}</td>
-                            <td style="padding: 12px; font-size: 13px; text-align: right;">$${i.monto.toFixed(2)}</td>
-                            <td style="padding: 12px; font-size: 13px; text-align: right; font-weight: bold; color: #E91E8C;">$${i.utilidad.toFixed(2)}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-
-            <div style="display: flex; justify-content: flex-end;">
-                <div style="background: #222; color: white; padding: 25px; border-radius: 12px; min-width: 350px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>Total Productos:</span>
-                        <span style="font-weight: bold;">${totalCantidadVentas}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>Monto Total:</span>
-                        <span style="font-weight: bold;">$${totalMontoVentas.toFixed(2)}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #444; padding-top: 15px;">
-                        <span style="font-size: 18px; font-weight: bold; color: #E91E8C;">UTILIDAD TOTAL:</span>
-                        <span style="font-size: 30px; font-weight: bold; color: #E91E8C;">$${totalUtilidadVentas.toFixed(2)}</span>
-                    </div>
-                </div>
-            </div>
-            <p style="text-align: center; margin-top: 50px; color: #aaa; font-size: 10px;">Maison Glacé - Sistema de Gestión Interna | ${new Date().toLocaleString()}</p>
-        </div>
-    `;
-
-        // 3. ¡LA MAGIA! Reemplazamos el body por el reporte para que el navegador lo vea sí o sí
-        document.body.innerHTML = htmlReporte;
-
-        const opt = {
-            margin: 0,
-            filename: `Reporte_Ventas_${periodo}.pdf`,
-            image: { type: 'jpeg', quality: 1 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
-            jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
-        };
-
-        // 4. Generamos el PDF y LUEGO restauramos todo
-        html2pdf().set(opt).from(document.body).save().then(() => {
-            // Restauramos el contenido original y reiniciamos los eventos
-            document.body.innerHTML = contenidoOriginal;
-            window.location.reload(); // Recargamos para que el JS vuelva a funcionar
-        });
-    }
-
-    // ==================== MERMAS ====================
-    function configurarFechasMermas() {
-        const tipo = document.getElementById('tipoMermas').value;
-        const semanaSelect = document.getElementById('semanaMermas');
-        const mesSelect = document.getElementById('mesMermas');
-
-        if (tipo === 'semana') {
-            semanaSelect.classList.remove('hidden');
-            mesSelect.classList.add('hidden');
-            cargarOpcionesSemanas('semanaMermas');
-        } else {
-            semanaSelect.classList.add('hidden');
-            mesSelect.classList.remove('hidden');
-            cargarOpcionesMeses('mesMermas');
-        }
-    }
-
     function cargarMermas() {
-        const tipo = document.getElementById('tipoMermas').value;
+        const tipo = document.getElementById('tipoPeriodo').value;
         let url = '/reports/api/reporte-mermas-periodo?tipo=' + tipo;
 
         if (tipo === 'semana') {
-            const semana = document.getElementById('semanaMermas').value;
-            console.log(semana);
-            url += '&semana=' + semana;
+            url += '&semana=' + document.getElementById('semanaSelect').value;
         } else {
-            const mes = document.getElementById('mesMermas').value;
-            url += '&mes=' + mes;
+            url += '&mes=' + document.getElementById('mesSelect').value;
         }
 
         fetch(url)
@@ -460,121 +242,475 @@
                 if (data.success) {
                     datosMermasActuales = data.datos;
                     totalPerdidasMermas = data.total_perdidas;
-                    renderizarTablaMermas(data.datos, data.total_perdidas);
-                } else {
-                    console.error('Error:', data.message);
+                    renderizarGraficaMermas(data.datos);
+                    document.getElementById('totalPerdidasMermas').innerText = `$${totalPerdidasMermas.toFixed(2)}`;
+                    actualizarGanancias();
                 }
             })
             .catch(error => console.error('Error:', error));
     }
 
-    function renderizarTablaMermas(datos, totalPerdidas) {
-        const tbody = document.getElementById('mermasBody');
-
-        if (!datos || datos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">No hay mermas registradas en este período</td></tr>';
-            document.getElementById('totalPerdidasMermas').innerText = '$0.00';
-            return;
-        }
-
-        let html = '';
-        datos.forEach(item => {
-            html += `
-            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                <td class="py-3 px-4 text-gray-700">${item.fecha}</td>
-                <td class="py-3 px-4 text-gray-700">${item.nombre}</td>
-                <td class="py-3 px-4 text-right text-gray-700">${item.cantidad}</td>
-                <td class="py-3 px-4 text-right text-gray-700">${item.unidad}</td>
-                <td class="py-3 px-4 text-gray-700">${item.causa}</td>
-                <td class="py-3 px-4 text-right text-red-600">$${item.perdida.toFixed(2)}</td>
-            </tr>
-        `;
-        });
-
-        tbody.innerHTML = html;
-        document.getElementById('totalPerdidasMermas').innerText = `$${totalPerdidas.toFixed(2)}`;
+    // ==================== CÁLCULO DE GANANCIAS ====================
+    function calcularGanancia() {
+        return totalUtilidadVentas - totalPerdidasMermas;
     }
 
-    function descargarPDFMermas() {
-        const tipo = document.getElementById('tipoMermas').value;
-        let periodo = '';
+    function actualizarGanancias() {
+        const margenUtilidad = totalMontoVentas > 0 ? totalUtilidadVentas / totalMontoVentas : 0;
+        totalGanancia = calcularGanancia();
+
+        document.getElementById('ventasParaGanancia').innerText = `$${totalUtilidadVentas.toFixed(2)}`;
+        document.getElementById('mermasParaGanancia').innerText = `$${totalPerdidasMermas.toFixed(2)}`;
+        document.getElementById('totalGanancia').innerText = `$${totalGanancia.toFixed(2)}`;
+
+        renderizarGraficaGanancias(margenUtilidad);
+    }
+
+    function renderizarGraficaGanancias(margenUtilidad) {
+        const ctx = document.getElementById('graficaGanancias').getContext('2d');
+
+        if (graficaGanancias) {
+            graficaGanancias.destroy();
+        }
+
+        const tipo = document.getElementById('tipoPeriodo').value;
+        let labels = [];
+        let valoresGanancia = [];
+
         if (tipo === 'semana') {
-            const semanaVal = document.getElementById('semanaMermas').value;
+            const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+            const gananciaPorDia = new Array(7).fill(0);
+
+            datosVentasActuales.forEach(venta => {
+                const fecha = venta.fecha.split('/');
+                const fechaObj = new Date(fecha[2], fecha[1] - 1, fecha[0]);
+                const diaSemana = fechaObj.getDay();
+                const index = diaSemana === 0 ? 6 : diaSemana - 1;
+                gananciaPorDia[index] += venta.monto * margenUtilidad;
+            });
+
+            labels = diasSemana;
+            valoresGanancia = gananciaPorDia;
+        } else {
+            const gananciaPorSemana = {};
+
+            datosVentasActuales.forEach(venta => {
+                const fecha = venta.fecha.split('/');
+                const fechaObj = new Date(fecha[2], fecha[1] - 1, fecha[0]);
+                const semana = getSemanaActual(fechaObj);
+                const key = `S${semana}`;
+
+                if (!gananciaPorSemana[key]) {
+                    gananciaPorSemana[key] = 0;
+                }
+                gananciaPorSemana[key] += venta.monto * margenUtilidad;
+            });
+
+            labels = Object.keys(gananciaPorSemana).sort((a, b) => {
+                const numA = parseInt(a.substring(1));
+                const numB = parseInt(b.substring(1));
+                return numA - numB;
+            });
+            valoresGanancia = labels.map(label => gananciaPorSemana[label]);
+        }
+
+        if (datosVentasActuales.length === 0) {
+            labels = ['Sin datos'];
+            valoresGanancia = [0];
+        }
+
+        graficaGanancias = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Ganancia',
+                    data: valoresGanancia,
+                    borderColor: '#10B981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#059669',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 1,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return ` $${context.parsed.y.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: { size: 9 },
+                            callback: function (value) {
+                                return '$' + value;
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: { size: 9 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // ==================== RENDERIZAR GRÁFICAS ====================
+    function renderizarGraficaVentas(datos, tipo) {
+        const ctx = document.getElementById('graficaVentas').getContext('2d');
+
+        if (graficaVentas) {
+            graficaVentas.destroy();
+        }
+
+        let labels = [];
+        let valores = [];
+
+        if (tipo === 'semana') {
+            const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+            const ventasPorDia = new Array(7).fill(0);
+
+            datos.forEach(venta => {
+                const fecha = venta.fecha.split('/');
+                const fechaObj = new Date(fecha[2], fecha[1] - 1, fecha[0]);
+                const diaSemana = fechaObj.getDay();
+                const index = diaSemana === 0 ? 6 : diaSemana - 1;
+                ventasPorDia[index] += venta.monto;
+            });
+
+            labels = diasSemana;
+            valores = ventasPorDia;
+        } else {
+            const semanasMes = {};
+
+            datos.forEach(venta => {
+                const fecha = venta.fecha.split('/');
+                const fechaObj = new Date(fecha[2], fecha[1] - 1, fecha[0]);
+                const semana = getSemanaActual(fechaObj);
+                const key = `S${semana}`;
+
+                if (!semanasMes[key]) {
+                    semanasMes[key] = 0;
+                }
+                semanasMes[key] += venta.monto;
+            });
+
+            labels = Object.keys(semanasMes).sort((a, b) => {
+                const numA = parseInt(a.substring(1));
+                const numB = parseInt(b.substring(1));
+                return numA - numB;
+            });
+            valores = labels.map(label => semanasMes[label]);
+        }
+
+        if (datos.length === 0) {
+            labels = ['Sin datos'];
+            valores = [0];
+        }
+
+        graficaVentas = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Ventas ($)',
+                    data: valores,
+                    backgroundColor: '#E91E8C',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: { size: 9 },
+                            callback: function (value) {
+                                return '$' + value;
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: { size: 9 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderizarGraficaMermas(datos) {
+        const ctx = document.getElementById('graficaMermas').getContext('2d');
+
+        if (graficaMermas) {
+            graficaMermas.destroy();
+        }
+
+        const mermasPorCategoria = {};
+
+        datos.forEach(merma => {
+            const categoria = merma.causa || 'Sin especificar';
+            if (!mermasPorCategoria[categoria]) {
+                mermasPorCategoria[categoria] = 0;
+            }
+            mermasPorCategoria[categoria] += merma.perdida;
+        });
+
+        let labels = Object.keys(mermasPorCategoria);
+        let valores = Object.values(mermasPorCategoria);
+
+        if (datos.length === 0) {
+            labels = ['Sin datos'];
+            valores = [0];
+        }
+
+        const colores = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316'];
+
+        graficaMermas = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: valores,
+                    backgroundColor: colores.slice(0, labels.length),
+                    borderWidth: 1,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: { display: false }
+                }
+            }
+        });
+    }
+
+    // ==================== DESCARGA PDF CON TABLAS DETALLADAS ====================
+    function descargarPDFCompleto() {
+        const tipo = document.getElementById('tipoPeriodo').value;
+        let periodo = '';
+
+        if (tipo === 'semana') {
+            const semanaVal = document.getElementById('semanaSelect').value;
             const año = semanaVal.split('-')[0];
             const semanaNum = parseInt(semanaVal.split('-W')[1]);
             periodo = formatearRangoSemana(parseInt(año), semanaNum);
         } else {
-            periodo = document.getElementById('mesMermas').options[document.getElementById('mesMermas').selectedIndex]?.text || 'Mes seleccionado';
+            periodo = document.getElementById('mesSelect').options[document.getElementById('mesSelect').selectedIndex]?.text || 'Mes seleccionado';
         }
 
-        // 1. Guardamos el contenido original
+        // Agrupar mermas por causa Y por unidad para la tabla
+        const mermasAgrupadas = {};
+        datosMermasActuales.forEach(merma => {
+            const causa = merma.causa || 'Sin especificar';
+            const unidad = merma.unidad || 'uds';
+            const key = `${causa}|${unidad}`;
+
+            if (!mermasAgrupadas[key]) {
+                mermasAgrupadas[key] = {
+                    causa: causa,
+                    unidad: unidad,
+                    cantidad: 0,
+                    perdida: 0,
+                    items: []
+                };
+            }
+            mermasAgrupadas[key].cantidad += merma.cantidad;
+            mermasAgrupadas[key].perdida += merma.perdida;
+            mermasAgrupadas[key].items.push(merma);
+        });
+
         const contenidoOriginal = document.body.innerHTML;
 
-        // 2. Creamos el HTML del reporte de Mermas con el rosa de Maison Glacé
         const htmlReporte = `
-        <div id="reporte-mermas-container" style="width: 1000px; margin: 0 auto; padding: 40px; background: white; font-family: Arial, sans-serif;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 6px solid #E91E8C; padding-bottom: 20px; margin-bottom: 30px;">
+        <div style="width: 100%; max-width: 1000px; margin: 0 auto; padding: 30px; background: white; font-family: Arial, sans-serif;">
+            <!-- Encabezado -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 4px solid #E91E8C; padding-bottom: 15px; margin-bottom: 30px;">
                 <div>
-                    <h1 style="color: #E91E8C; font-size: 45px; margin: 0; font-weight: 900; letter-spacing: 3px;">MAISON GLACÉ</h1>
-                    <p style="margin: 5px 0 0; color: #666; font-size: 14px; text-transform: uppercase;">Control de Inventario y Mermas</p>
+                    <h1 style="color: #E91E8C; font-size: 36px; margin: 0; font-weight: 900;">MAISON GLACÉ</h1>
+                    <p style="margin: 5px 0 0; color: #666; font-size: 12px;">Reporte de Gestión Operativa</p>
                 </div>
                 <div style="text-align: right;">
-                    <h2 style="margin: 0; color: #333; font-size: 22px;">REPORTE DE MERMAS</h2>
-                    <p style="margin: 5px 0; font-size: 18px; color: #E91E8C; font-weight: bold;">${periodo}</p>
+                    <h2 style="margin: 0; color: #333; font-size: 20px;">REPORTE COMPLETO</h2>
+                    <p style="margin: 5px 0; font-size: 14px; color: #E91E8C; font-weight: bold;">${periodo}</p>
                 </div>
             </div>
 
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; table-layout: fixed;">
-                <thead>
-                    <tr style="background-color: #E91E8C; color: white;">
-                        <th style="padding: 15px; border: 1px solid #E91E8C; text-align: left; width: 12%;">FECHA</th>
-                        <th style="padding: 15px; border: 1px solid #E91E8C; text-align: left; width: 28%;">PRODUCTO / INSUMO</th>
-                        <th style="padding: 15px; border: 1px solid #E91E8C; text-align: center; width: 10%;">CANT.</th>
-                        <th style="padding: 15px; border: 1px solid #E91E8C; text-align: center; width: 10%;">UNIDAD</th>
-                        <th style="padding: 15px; border: 1px solid #E91E8C; text-align: left; width: 25%;">CAUSA</th>
-                        <th style="padding: 15px; border: 1px solid #E91E8C; text-align: right; width: 15%;">PÉRDIDA</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${datosMermasActuales.map(i => `
-                        <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 12px; font-size: 12px;">${i.fecha}</td>
-                            <td style="padding: 12px; font-size: 12px; font-weight: bold;">${i.nombre}</td>
-                            <td style="padding: 12px; font-size: 12px; text-align: center;">${i.cantidad}</td>
-                            <td style="padding: 12px; font-size: 12px; text-align: center;">${i.unidad}</td>
-                            <td style="padding: 12px; font-size: 12px;">${i.causa}</td>
-                            <td style="padding: 12px; font-size: 13px; text-align: right; color: #E91E8C; font-weight: bold;">$${i.perdida.toFixed(2)}</td>
+            <!-- Sección de Ventas -->
+            <div style="margin-bottom: 40px;">
+                <h3 style="color: #E91E8C; font-size: 18px; margin-bottom: 15px; border-left: 4px solid #E91E8C; padding-left: 10px;">VENTAS DEL PERÍODO</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+                    <thead>
+                        <tr style="background-color: #E91E8C; color: white;">
+                            <th style="padding: 10px; text-align: left; border: 1px solid #E91E8C;">Fecha</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #E91E8C;">Producto</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #E91E8C;">Cliente</th>
+                            <th style="padding: 10px; text-align: center; border: 1px solid #E91E8C;">Cantidad</th>
+                            <th style="padding: 10px; text-align: right; border: 1px solid #E91E8C;">Monto</th>
                         </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-
-            <div style="display: flex; justify-content: flex-end;">
-                <div style="background: #222; color: white; padding: 25px; border-radius: 12px; min-width: 350px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 18px; font-weight: bold; color: white;">TOTAL PÉRDIDAS:</span>
-                        <span style="font-size: 30px; font-weight: bold; color: #E91E8C;">$${totalPerdidasMermas.toFixed(2)}</span>
+                    </thead>
+                    <tbody>
+                        ${datosVentasActuales.map(v => `
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px; border: 1px solid #ddd;">${v.fecha}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${v.producto}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${v.cliente}</td>
+                                <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${v.cantidad}</td>
+                                <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">$${v.monto.toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <div style="display: flex; justify-content: flex-end;">
+                    <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; min-width: 250px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span>Total productos:</span>
+                            <strong>${totalCantidadVentas}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Total ventas:</span>
+                            <strong style="color: #E91E8C;">$${totalMontoVentas.toFixed(2)}</strong>
+                        </div>
                     </div>
                 </div>
             </div>
-            <p style="text-align: center; margin-top: 50px; color: #aaa; font-size: 10px;">
+
+            <!-- Sección de Mermas -->
+            <div style="margin-bottom: 40px;">
+                <h3 style="color: #E91E8C; font-size: 18px; margin-bottom: 15px; border-left: 4px solid #E91E8C; padding-left: 10px;">MERMAS DEL PERÍODO</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+                    <thead>
+                        <tr style="background-color: #EF4444; color: white;">
+                            <th style="padding: 10px; text-align: left; border: 1px solid #EF4444;">Causa de Merma</th>
+                            <th style="padding: 10px; text-align: center; border: 1px solid #EF4444;">Cantidad Total</th>
+                            <th style="padding: 10px; text-align: right; border: 1px solid #EF4444;">Pérdida Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.values(mermasAgrupadas).map(m => `
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">${m.causa}</td>
+                                <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${m.cantidad} ${m.unidad}</td>
+                                <td style="padding: 8px; text-align: right; border: 1px solid #ddd; color: #EF4444;">$${m.perdida.toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                
+                <!-- Detalle de items por causa -->
+                ${Object.entries(mermasAgrupadas).map(([key, data]) => `
+                    <div style="margin-bottom: 15px;">
+                        <h4 style="color: #666; font-size: 14px; margin-bottom: 8px;">Detalle: ${data.causa} (${data.unidad})</h4>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                            <thead>
+                                <tr style="background-color: #fef2f2;">
+                                    <th style="padding: 6px; text-align: left; border: 1px solid #fca5a5;">Fecha</th>
+                                    <th style="padding: 6px; text-align: left; border: 1px solid #fca5a5;">Producto/Insumo</th>
+                                    <th style="padding: 6px; text-align: center; border: 1px solid #fca5a5;">Cantidad</th>
+                                    <th style="padding: 6px; text-align: right; border: 1px solid #fca5a5;">Pérdida</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.items.map(item => `
+                                    <tr>
+                                        <td style="padding: 5px; border: 1px solid #fca5a5;">${item.fecha}</td>
+                                        <td style="padding: 5px; border: 1px solid #fca5a5;">${item.nombre}</td>
+                                        <td style="padding: 5px; text-align: center; border: 1px solid #fca5a5;">${item.cantidad} ${item.unidad}</td>
+                                        <td style="padding: 5px; text-align: right; border: 1px solid #fca5a5;">$${item.perdida.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `).join('')}
+                
+                <div style="display: flex; justify-content: flex-end; margin-top: 15px;">
+                    <div style="background: #fef2f2; padding: 15px; border-radius: 8px; min-width: 250px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Total pérdidas:</span>
+                            <strong style="color: #EF4444;">$${totalPerdidasMermas.toFixed(2)}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de Ganancias -->
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #E91E8C; font-size: 18px; margin-bottom: 15px; border-left: 4px solid #10B981; padding-left: 10px;">GANANCIAS DEL PERÍODO</h3>
+                <div style="display: flex; justify-content: flex-end;">
+                    <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; min-width: 350px; border: 2px solid #10B981;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+                            <span>Ventas totales:</span>
+                            <strong>$${totalMontoVentas.toFixed(2)}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+                            <span>Utilidad de ventas:</span>
+                            <strong>$${totalUtilidadVentas.toFixed(2)}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #EF4444;">
+                            <span>Mermas totales:</span>
+                            <strong>-$${totalPerdidasMermas.toFixed(2)}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding-top: 10px; border-top: 2px solid #10B981; font-size: 16px;">
+                            <span style="font-weight: bold;">GANANCIA NETA:</span>
+                            <strong style="color: #10B981; font-size: 20px;">$${totalGanancia.toFixed(2)}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p style="text-align: center; margin-top: 40px; color: #aaa; font-size: 9px;">
                 Maison Glacé - Sistema de Gestión Interna | Reporte generado el ${new Date().toLocaleString()}
             </p>
         </div>
     `;
 
-        // 3. Reemplazamos el body temporalmente
         document.body.innerHTML = htmlReporte;
 
         const opt = {
-            margin: 0,
-            filename: `Reporte_Mermas_${periodo}.pdf`,
+            margin: [0.3, 0.3, 0.3, 0.3],
+            filename: `Reporte_Completo_${periodo.replace(/\s+/g, '_')}.pdf`,
             image: { type: 'jpeg', quality: 1 },
             html2canvas: { scale: 2, useCORS: true, logging: false },
-            jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['css', 'legacy'] }
         };
 
-        // 4. Generamos y restauramos la página
         html2pdf().set(opt).from(document.body).save().then(() => {
             document.body.innerHTML = contenidoOriginal;
             window.location.reload();
@@ -583,11 +719,9 @@
 
     // ==================== INICIALIZACIÓN ====================
     document.addEventListener('DOMContentLoaded', function () {
-        document.getElementById('tipoVentas').addEventListener('change', configurarFechasVentas);
-        document.getElementById('tipoMermas').addEventListener('change', configurarFechasMermas);
-        configurarFechasVentas();
-        configurarFechasMermas();
-        cargarVentas();
+        document.getElementById('tipoPeriodo').addEventListener('change', configurarPeriodo);
+        configurarPeriodo();
+        cargarTodosLosReportes();
     });
 </script>
 

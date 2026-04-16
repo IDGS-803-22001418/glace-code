@@ -43,7 +43,8 @@ def api_reporte_ventas():
             ).outerjoin(User, User.id == Customer.user_id
             ).filter(
                 Venta.fecha_hora >= inicio_semana,
-                Venta.fecha_hora <= fin_semana
+                Venta.fecha_hora <= fin_semana,
+                Venta.estado != 'Cancelado'
             ).all()
             
             datos = []
@@ -89,7 +90,8 @@ def api_reporte_ventas():
             ).outerjoin(User, User.id == Customer.user_id
             ).filter(
                 db.extract('year', Venta.fecha_hora) == año,
-                db.extract('month', Venta.fecha_hora) == mes_num
+                db.extract('month', Venta.fecha_hora) == mes_num,
+                Venta.estado != 'Cancelado'
             ).all()
             
             datos = []

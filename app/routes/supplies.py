@@ -213,6 +213,7 @@ def eliminar_insumo():
 
 @supplies_bp.route("/api/<int:insumo_id>/units", methods=['GET'])
 @login_required
+@roles_required('admin')
 def api_insumo_units(insumo_id: int):
     insumo = db.session.query(Insumo).filter_by(id=insumo_id, is_active=True).first()
     if not insumo:

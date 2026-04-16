@@ -145,7 +145,7 @@ def my_profile():
         return redirect(url_for('customers.my_profile'))
 
     # Fetch only last 3 orders
-    purchases = db.session.query(Venta).filter_by(cliente_id=customer.id).order_by(Venta.fecha_hora.desc()).limit(3).all()
+    purchases = db.session.query(Venta).filter_by(cliente_id=customer.id).filter(Venta.estado != 'Cancelado').order_by(Venta.fecha_hora.desc()).limit(3).all()
 
     return render_template('internal/customers/my-profile.html', customer=customer, user=user, purchases=purchases)
 
@@ -158,7 +158,7 @@ def my_orders():
     if not customer:
         return "Perfil de cliente no encontrado", 404
 
-    purchases = db.session.query(Venta).filter_by(cliente_id=customer.id).order_by(Venta.fecha_hora.desc()).all()
+    purchases = db.session.query(Venta).filter_by(cliente_id=customer.id).filter(Venta.estado != 'Cancelado').order_by(Venta.fecha_hora.desc()).all()
     return render_template('internal/customers/my-orders.html', purchases=purchases)
 
 
@@ -296,13 +296,13 @@ def view(customer_id: int):
         return redirect(url_for('customers.index'))
 
     # Metrics calculation
-    ventas = db.session.query(Venta).filter_by(cliente_id=customer.id).all()
+    ventas = db.session.query(Venta).filter_by(cliente_id=customer.id).filter(Venta.estado != 'Cancelado').all()
     total_spent = sum(v.monto_recibido for v in ventas)
     order_count = len(ventas)
     avg_ticket = total_spent / order_count if order_count > 0 else 0
     
     # Recent history
-    history = db.session.query(Venta).filter_by(cliente_id=customer.id).order_by(Venta.fecha_hora.desc()).limit(10).all()
+    history = db.session.query(Venta).filter_by(cliente_id=customer.id).filter(Venta.estado != 'Cancelado').order_by(Venta.fecha_hora.desc()).limit(10).all()
 
     return render_template(
         'internal/customers/view.html',

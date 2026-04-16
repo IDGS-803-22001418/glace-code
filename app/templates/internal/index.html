@@ -23,7 +23,8 @@
                         d="M538.5-138.5Q480-197 480-280t58.5-141.5Q597-480 680-480t141.5 58.5Q880-363 880-280t-58.5 141.5Q763-80 680-80t-141.5-58.5ZM747-185l28-28-75-75v-112h-40v128l87 87Zm-547 65q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h167q11-35 43-57.5t70-22.5q40 0 71.5 22.5T594-840h166q33 0 56.5 23.5T840-760v250q-18-13-38-22t-42-16v-212h-80v120H280v-120h-80v560h212q7 22 16 42t22 38H200Zm308.5-651.5Q520-783 520-800t-11.5-28.5Q497-840 480-840t-28.5 11.5Q440-817 440-800t11.5 28.5Q463-760 480-760t28.5-11.5Z" />
                 </svg>
             </div>
-            <p class="text-slate-500 text-sm font-medium uppercase tracking-wider">Producción pendiente para venta sobre inventario</p>
+            <p class="text-slate-500 text-sm font-medium uppercase tracking-wider">Producción pendiente para venta sobre
+                inventario</p>
         </div>
         <h3 class="text-3xl font-bold text-slate-900 mt-1">{{ produccion_count }} Lotes</h3>
     </div>
@@ -47,7 +48,9 @@
                         d="M159-120v-120h124L181-574q-27-15-44.5-44T119-680q0-50 35-85t85-35q39 0 69.5 22.5T351-720h128v-40q0-17 11.5-28.5T519-800q9 0 17.5 4t14.5 12l68-64q9-9 21.5-11.5T665-856l156 72q12 6 16.5 17.5T837-744q-6 12-17.5 15.5T797-730l-144-66-94 88v56l94 86 144-66q11-5 23-1t17 15q6 12 1 23t-17 17l-156 74q-12 6-24.5 3.5T619-512l-68-64q-6 6-14.5 11t-17.5 5q-17 0-28.5-11.5T479-600v-40H351q-3 8-6.5 15t-9.5 15l200 370h144v120H159Zm108.5-531.5Q279-663 279-680t-11.5-28.5Q256-720 239-720t-28.5 11.5Q199-697 199-680t11.5 28.5Q222-640 239-640t28.5-11.5ZM365-240h78L271-560h-4l98 320Zm78 0Z" />
                 </svg>
             </div>
-            <span class="text-xs font-bold {% if ventas_porcentaje >= 0 %}text-green-500 bg-green-50{% else %}text-red-500 bg-red-50{% endif %} px-2 py-1 rounded-full">{{ "%+.1f"|format(ventas_porcentaje) }}% vs prom.</span>
+            <span
+                class="text-xs font-bold {% if ventas_porcentaje >= 0 %}text-green-500 bg-green-50{% else %}text-red-500 bg-red-50{% endif %} px-2 py-1 rounded-full">{{
+                "%+.1f"|format(ventas_porcentaje) }}% vs prom.</span>
         </div>
         <p class="text-slate-500 text-sm font-medium uppercase tracking-wider">Ventas del Día</p>
         <h3 class="text-3xl font-bold text-slate-900 mt-1">${{ "{:,.2f}".format(ventas_total_hoy) }}</h3>
@@ -60,7 +63,9 @@
                         d="m40-120 440-760 440 760H40Zm138-80h604L480-720 178-200Zm330.5-51.5Q520-263 520-280t-11.5-28.5Q497-320 480-320t-28.5 11.5Q440-297 440-280t11.5 28.5Q463-240 480-240t28.5-11.5ZM440-360h80v-200h-80v200Zm40-100Z" />
                 </svg>
             </div>
-            <span class="text-xs font-bold {% if utilidad_porcentaje >= 0 %}text-green-500 bg-green-50{% else %}text-red-500 bg-red-50{% endif %} px-2 py-1 rounded-full">{{ "%+.1f"|format(utilidad_porcentaje) }}% vs prom.</span>
+            <span
+                class="text-xs font-bold {% if utilidad_porcentaje >= 0 %}text-green-500 bg-green-50{% else %}text-red-500 bg-red-50{% endif %} px-2 py-1 rounded-full">{{
+                "%+.1f"|format(utilidad_porcentaje) }}% vs prom.</span>
         </div>
         <p class="text-slate-500 text-sm font-medium uppercase tracking-wider">Utilidad Aproximada</p>
         <h3 class="text-3xl font-bold text-slate-900 mt-1">${{ "{:,.2f}".format(utilidad_hoy) }}</h3>
@@ -91,15 +96,18 @@
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="px-6 py-4 text-sm font-semibold">MG-{{ venta.id }}</td>
                         <td class="px-6 py-4 text-sm text-slate-600">
-                            {{ venta.cliente.user.nombre_completo if venta.cliente and venta.cliente.user else 'Mostrador' }}
+                            {{ venta.cliente.user.nombre_completo if venta.cliente and venta.cliente.user else
+                            'Mostrador' }}
                         </td>
                         <td class="px-6 py-4 text-sm text-slate-600">
                             {% for detalle in venta.detalles %}
-                                {{ detalle.cantidad }}x {{ detalle.producto.nombre_producto }}{% if not loop.last %}, {% endif %}
+                            {{ detalle.cantidad }}x {{ detalle.producto.nombre_producto }}{% if not loop.last %}, {%
+                            endif %}
                             {% endfor %}
                         </td>
                         <td class="px-6 py-4 text-sm">
-                            <span class="px-2 py-1 {% if venta.estado == 'Pendiente' %}bg-blue-100 text-blue-700{% elif venta.estado == 'Completado' or venta.estado == 'Entregado' or venta.estado == 'Listo' %}bg-green-100 text-green-700{% else %}bg-amber-100 text-amber-700{% endif %} text-xs font-bold rounded-full">
+                            <span
+                                class="px-2 py-1 {% if venta.estado == 'Pendiente' %}bg-blue-100 text-blue-700{% elif venta.estado == 'Completado' or venta.estado == 'Entregado' or venta.estado == 'Listo' %}bg-green-100 text-green-700{% else %}bg-amber-100 text-amber-700{% endif %} text-xs font-bold rounded-full">
                                 {{ venta.estado }}
                             </span>
                         </td>
@@ -108,7 +116,10 @@
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="5" class="px-6 py-4 text-sm text-center text-slate-500">No hay ventas registradas el día de hoy.</td></tr>
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-sm text-center text-slate-500">No hay ventas registradas
+                            el día de hoy.</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -121,11 +132,13 @@
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="size-6">
-                        <path d="M620-163 450-333l56-56 114 114 226-226 56 56-282 282Zm220-397h-80v-200h-80v120H280v-120h-80v560h240v80H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h167q11-35 43-57.5t70-22.5q40 0 71.5 22.5T594-840h166q33 0 56.5 23.5T840-760v200ZM508.5-771.5Q520-783 520-800t-11.5-28.5Q497-840 480-840t-28.5 11.5Q440-817 440-800t11.5 28.5Q463-760 480-760t28.5-11.5Z" />
+                        <path
+                            d="M620-163 450-333l56-56 114 114 226-226 56 56-282 282Zm220-397h-80v-200h-80v120H280v-120h-80v560h240v80H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h167q11-35 43-57.5t70-22.5q40 0 71.5 22.5T594-840h166q33 0 56.5 23.5T840-760v200ZM508.5-771.5Q520-783 520-800t-11.5-28.5Q497-840 480-840t-28.5 11.5Q440-817 440-800t11.5 28.5Q463-760 480-760t28.5-11.5Z" />
                     </svg>
                     Alertas de Inventario
                 </h2>
-                <a href="{{ url_for('purchases.index') }}" class="text-primary text-sm font-bold hover:underline">Ir a Compras</a>
+                <a href="{{ url_for('purchases.index') }}" class="text-primary text-sm font-bold hover:underline">Ir a
+                    Compras</a>
             </div>
             <div class="space-y-4">
                 {% for alerta in alertas_inventario %}
@@ -133,13 +146,37 @@
                     <div class="size-2 rounded-full bg-red-500"></div>
                     <div class="flex-1">
                         <p class="text-sm font-bold text-slate-800">{{ alerta.nombre_insumo }}</p>
-                        <p class="text-xs text-slate-500">Stock Crítico: {{ alerta.stock_actual }}{{ alerta.unidad_base.abreviatura if alerta.unidad_base else '' }} restan</p>
+                        <p class="text-xs text-slate-500">Stock Crítico: {{ alerta.stock_actual }}{{
+                            alerta.unidad_base.abreviatura if alerta.unidad_base else '' }} restan</p>
                     </div>
                 </div>
                 {% else %}
                 <p class="text-sm text-slate-500">No hay alertas de inventario.</p>
                 {% endfor %}
-            </div>        </div>
+            </div>
+        </div>
+        <!-- Best Selling Products Widget -->
+        <div class="bg-white p-6 rounded-2xl border border-primary/5 shadow-sm">
+            <h2 class="text-lg font-bold text-slate-900 mb-4">Productos Más Vendidos</h2>
+            <div class="space-y-4">
+                <div>
+                    <p class="text-sm font-bold text-slate-800">Última Semana</p>
+                    {% if best_week_name %}
+                    <p class="text-sm text-slate-600">{{ best_week_name }} ({{ best_week_total }} unidades)</p>
+                    {% else %}
+                    <p class="text-sm text-slate-500">No hay datos</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-slate-800">Último Mes</p>
+                    {% if best_month_name %}
+                    <p class="text-sm text-slate-600">{{ best_month_name }} ({{ best_month_total }} unidades)</p>
+                    {% else %}
+                    <p class="text-sm text-slate-500">No hay datos</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

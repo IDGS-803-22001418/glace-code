@@ -4,6 +4,7 @@ from app.decorators import roles_required
 from app import db
 from app.models import Product
 import random
+from datetime import datetime, timedelta
 
 main_bp = Blueprint('main', __name__)
 
@@ -20,9 +21,9 @@ def our_products():
 
 @main_bp.route('/internal')
 @login_required
-@roles_required('admin', 'chef', 'seller')
+@roles_required('admin', 'chef')
 def internal():
-    from datetime import datetime, timezone
+    from datetime import datetime
     from sqlalchemy import func
     from app.models import ProductionTask, Venta, DetalleVenta, CustomOrder, Insumo, db
 
@@ -31,13 +32,13 @@ def internal():
     # 1. Producción (Lotes activos)
     produccion_count = db.session.query(ProductionTask).filter(ProductionTask.estado != 'Listo' and ProductionTask.is_active).count()
 
-    # 2. Pedidos (Ventas con CustomOrder no listas/entregadas)
+    # 2. Pedidos (Ventas con CustomOrder no listas/entregadas/canceladas)
     pedidos_count = db.session.query(Venta).join(DetalleVenta).join(CustomOrder).filter(
-        ~Venta.estado.in_(['Listo', 'Entregado'])
+        ~Venta.estado.in_(['Listo', 'Entregado', 'Cancelado'])
     ).distinct().count()
 
     # 3. Ventas del día
-    ventas_hoy = db.session.query(Venta).filter(func.date(Venta.fecha_hora) == today).all()
+    ventas_hoy = db.session.query(Venta).filter(func.date(Venta.fecha_hora) == today, Venta.estado != 'Cancelado').all()
     
     ventas_total_hoy = 0.0
     for v in ventas_hoy:
@@ -54,7 +55,7 @@ def internal():
     utilidad_hoy = ventas_total_hoy - costo_total_hoy
     
     # 5. Cálculo de promedios históricos para porcentajes
-    ventas_historicas = db.session.query(Venta).filter(func.date(Venta.fecha_hora) < today).all()
+    ventas_historicas = db.session.query(Venta).filter(func.date(Venta.fecha_hora) < today, Venta.estado != 'Cancelado').all()
     ventas_por_dia = {}
     utilidad_por_dia = {}
     
@@ -86,7 +87,8 @@ def internal():
 
     # 5. Actividad Reciente (Ventas de hoy)
     actividad_reciente = db.session.query(Venta).filter(
-        func.date(Venta.fecha_hora) == today
+        func.date(Venta.fecha_hora) == today,
+        Venta.estado != 'Cancelado'
     ).order_by(Venta.fecha_hora.desc()).limit(10).all()
 
     # 6. Alertas de inventario
@@ -95,6 +97,35 @@ def internal():
         Insumo.is_active == True
     ).all()
     alertas_count = len(alertas_inventario)
+
+    # Best selling products
+    last_week_start = today - timedelta(days=7)
+    last_month_start = today - timedelta(days=30)
+
+    best_week = db.session.query(
+        Product.nombre_producto,
+        func.sum(DetalleVenta.cantidad).label('total')
+    ).join(DetalleVenta, Product.id == DetalleVenta.producto_id
+    ).join(Venta, DetalleVenta.venta_id == Venta.id
+    ).filter(Venta.fecha_hora >= last_week_start, Venta.estado != 'Cancelado'
+    ).group_by(Product.id
+    ).order_by(func.sum(DetalleVenta.cantidad).desc()
+    ).first()
+
+    best_month = db.session.query(
+        Product.nombre_producto,
+        func.sum(DetalleVenta.cantidad).label('total')
+    ).join(DetalleVenta, Product.id == DetalleVenta.producto_id
+    ).join(Venta, DetalleVenta.venta_id == Venta.id
+    ).filter(Venta.fecha_hora >= last_month_start, Venta.estado != 'Cancelado'
+    ).group_by(Product.id
+    ).order_by(func.sum(DetalleVenta.cantidad).desc()
+    ).first()
+
+    best_week_name = best_week.nombre_producto if best_week else None
+    best_week_total = best_week.total if best_week else 0
+    best_month_name = best_month.nombre_producto if best_month else None
+    best_month_total = best_month.total if best_month else 0
 
     return render_template('internal/index.html',
                            produccion_count=produccion_count,
@@ -105,4 +136,8 @@ def internal():
                            utilidad_porcentaje=utilidad_porcentaje,
                            actividad_reciente=actividad_reciente,
                            alertas_inventario=alertas_inventario,
-                           alertas_count=alertas_count)
+                           alertas_count=alertas_count,
+                           best_week_name=best_week_name,
+                           best_week_total=best_week_total,
+                           best_month_name=best_month_name,
+                           best_month_total=best_month_total)

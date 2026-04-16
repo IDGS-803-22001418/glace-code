@@ -4,6 +4,7 @@ from app import db, user_logger
 from app.models import Product, Customer, User, Venta, DetalleVenta
 from flask_login import login_required, current_user # type: ignore
 from app.decorators import roles_required
+from datetime import datetime
 
 pos_bp = Blueprint('pos', __name__)
 
@@ -56,7 +57,7 @@ def register_sale():
             monto_recibido=monto_recibido,
             monto_cambio=monto_cambio,
             lugar_entrega='Tienda',
-            fecha_hora_entrega=db.func.current_timestamp(),
+            fecha_hora_entrega=datetime.now(),
             estado='Entregado'
         )
         db.session.add(nueva_venta)

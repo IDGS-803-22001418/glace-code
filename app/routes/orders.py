@@ -4,7 +4,7 @@ from flask_login import login_required, current_user  # type: ignore
 from app.decorators import roles_required
 from app import db, user_logger
 from app.models import Product, Venta, DetalleVenta, CustomOrder, Customer, User, Recipe, ProductionTask, RecipeDetail, Insumo
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 
 orders_bp = Blueprint('orders', __name__)
 
@@ -29,14 +29,14 @@ def _to_base_units(detail: RecipeDetail) -> tuple[float | None, str | None]:
 
 @orders_bp.route('/')
 @login_required
-@roles_required('chef', 'seller')
+@roles_required('chef', 'seller', 'admin')
 def index():
     # Only show orders with at least one custom item
     custom_sales = (
         Venta.query
         .join(DetalleVenta)
         .join(CustomOrder)
-        .filter(Venta.estado != 'Entregado')
+        .filter(~Venta.estado.in_(['Entregado', 'Cancelado']))
         .order_by(Venta.fecha_hora.asc())
         .distinct()
         .all()
@@ -330,6 +330,31 @@ def mark_as_delivered(venta_id: int):
             success=True,
         )
         flash('Venta finalizada: Pedido entregado al cliente.', 'success')
+    return redirect(url_for('orders.index'))
+
+
+@orders_bp.route('/cancel/<int:venta_id>', methods=['POST'])
+@login_required
+@roles_required('admin')
+def cancel_order(venta_id: int):
+    venta = db.session.get(Venta, venta_id)
+    if not venta:
+        flash('Venta no encontrada.', 'danger')
+        return redirect(url_for('orders.index'))
+
+    if venta.estado != 'Pendiente':
+        flash('Solo se pueden cancelar pedidos pendientes.', 'danger')
+        return redirect(url_for('orders.index'))
+
+    venta.estado = 'Cancelado'
+    db.session.commit()
+    user_logger.log_action(
+        current_user,
+        module="Pedidos",
+        action=f"Se canceló el pedido {venta_id}",
+        success=True,
+    )
+    flash('Pedido cancelado.', 'success')
     return redirect(url_for('orders.index'))
 
 
