@@ -168,7 +168,7 @@ def create():
             user_logger.log_action(
                 current_user,
                 module="Producción",
-                action="Se creó una tarea de producción",
+                action=f"Se creó la orden de producción para {recipe.nombre_variante} de {recipe.product.nombre_producto}",
                 success=True,
             )
 
@@ -250,7 +250,7 @@ def edit(id: int):
             user_logger.log_action(
                 current_user,
                 module="Producción",
-                action="Se editó una tarea de producción",
+                action=f"Se editó la orden de producción {task.id} ({task.receta.nombre_variante})",
                 success=True,
             )
             flash('Orden de producción actualizada correctamente.', 'success')
@@ -299,7 +299,7 @@ def delete(id: int):
             user_logger.log_action(
                 current_user,
                 module="Producción",
-                action="Se eliminó una tarea de producción",
+                action=f"Se eliminó la orden de producción {task.id} ({task.receta.nombre_variante})",
                 success=True,
             )
 

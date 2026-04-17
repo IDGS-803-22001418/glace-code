@@ -143,7 +143,7 @@ def crear():
             user_logger.log_action(
                 current_user,
                 module="Compras",
-                action="Se registró una compra al proveedor",
+                action=f"Se registró una compra al proveedor {nueva_compra.supplier.nombre_empresa}",
                 success=True,
             )
             flash('Compra registrada exitosamente.', 'success')
@@ -270,7 +270,7 @@ def editar(id):
             user_logger.log_action(
                 current_user,
                 module="Compras",
-                action="Se actualizó una compra",
+                action=f"Se actualizó la compra al proveedor {proveedor.nombre_empresa}",
                 success=True,
             )
             flash('Compra actualizada exitosamente.', 'success')
@@ -343,7 +343,7 @@ def eliminar(id):
             user_logger.log_action(
                 current_user,
                 module="Compras",
-                action="Se eliminó una compra",
+                action=f"Se eliminó la compra de {compra.proveedor_nombre}",
                 success=True,
             )
             flash('Compra eliminada y stock actualizado correctamente.', 'success')

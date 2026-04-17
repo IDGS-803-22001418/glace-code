@@ -95,11 +95,12 @@ def nueva_merma():
             )
 
             db.session.add(nueva)
+            item_name = producto.nombre_producto if item_type == 'producto' else insumo.nombre_insumo
             db.session.commit()
             user_logger.log_action(
                 current_user,
                 module="Mermas",
-                action="Se registró una nueva merma",
+                action=f"Se registró una nueva merma de {item_name}",
                 success=True,
             )
             flash("Merma registrada satisfactoriamente.", "success")
@@ -189,11 +190,12 @@ def modificar_merma(id):
             merma_actual.causa = request.form.get('causa')
             merma_actual.notas_adicionales = request.form.get('notas_adicionales')
 
+            item_name = producto_nuevo.nombre_producto if item_type == 'producto' else insumo_nuevo.nombre_insumo
             db.session.commit()
             user_logger.log_action(
                 current_user,
                 module="Mermas",
-                action="Se actualizó una merma",
+                action=f"Se actualizó la merma de {item_name}",
                 success=True,
             )
             flash("Merma actualizada correctamente.", "success")
@@ -226,12 +228,13 @@ def eliminar_merma(id):
                     producto.stock += merma_a_eliminar.cantidad_perdida
             
             # 2. Eliminación suave (soft-delete)
+            item_name = producto.nombre_producto if merma_a_eliminar.producto_id else insumo.nombre_insumo
             merma_a_eliminar.is_active = False
             db.session.commit()
             user_logger.log_action(
                 current_user,
                 module="Mermas",
-                action="Se eliminó una merma",
+                action=f"Se eliminó la merma de {item_name}",
                 success=True,
             )
             

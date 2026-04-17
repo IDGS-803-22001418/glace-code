@@ -89,7 +89,7 @@ def register_sale():
         user_logger.log_action(
             current_user,
             module="Punto de Venta",
-            action=f"Se registró una venta por {total}",
+            action=f"Se registró la venta {nueva_venta.id} por ${total}",
             success=True,
         )
         

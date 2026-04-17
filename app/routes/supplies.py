@@ -86,7 +86,7 @@ def nuevo_insumo():
             user_logger.log_action(
                 current_user,
                 module="Insumos",
-                action="Se registró un nuevo insumo",
+                action=f"Se registró el insumo {nuevo.nombre_insumo}",
                 success=True,
             )
             
@@ -158,7 +158,7 @@ def modificar(id):
         user_logger.log_action(
             current_user,
             module="Insumos",
-            action="Se actualizó un insumo",
+            action=f"Se actualizó el insumo {insumo1.nombre_insumo}",
             success=True,
         )
         flash('Insumo actualizado con éxito', 'success')
@@ -200,7 +200,7 @@ def eliminar_insumo(id):
             user_logger.log_action(
                 current_user,
                 module="Insumos",
-                action="Se eliminó un insumo",
+                action=f"Se eliminó el insumo {insumo_del.nombre_insumo}",
                 success=True,
             )
             flash(f'¡{insumo_del.nombre_insumo} eliminado permanentemente!', 'success')

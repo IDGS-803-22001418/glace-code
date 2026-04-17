@@ -67,7 +67,7 @@ def create():
         user_logger.log_action(
             current_user,
             module="Proveedores",
-            action="Se creó un proveedor",
+            action=f"Se creó el proveedor {nuevo_proveedor.nombre_empresa}",
             success=True,
         )
 
@@ -94,7 +94,7 @@ def edit(id):
         user_logger.log_action(
             current_user,
             module="Proveedores",
-            action="Se actualizó un proveedor",
+            action=f"Se actualizó el proveedor {supplier.nombre_empresa}",
             success=True,
         )
         return redirect(url_for('suppliers.index'))
@@ -113,7 +113,7 @@ def delete(id):
         user_logger.log_action(
             current_user,
             module="Proveedores",
-            action="Se eliminó un proveedor",
+            action=f"Se eliminó el proveedor {supplier.nombre_empresa}",
             success=True,
         )
         return redirect(url_for('suppliers.index'))

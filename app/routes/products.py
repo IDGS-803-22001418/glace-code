@@ -140,7 +140,7 @@ def create():
             user_logger.log_action(
                 current_user,
                 module="Productos",
-                action="Se creó un producto",
+                action=f"Se creó el producto {new_product.nombre_producto}",
                 success=True,
             )
             
@@ -226,7 +226,7 @@ def edit(product_id: int):
             user_logger.log_action(
                 current_user,
                 module="Productos",
-                action="Se actualizó un producto",
+                action=f"Se actualizó el producto {product.nombre_producto}",
                 success=True,
             )
             
@@ -264,7 +264,7 @@ def delete(product_id: int):
             user_logger.log_action(
                 current_user,
                 module="Productos",
-                action="Se eliminó un producto",
+                action=f"Se eliminó el producto {product.nombre_producto}",
                 success=True,
             )
             
@@ -360,7 +360,7 @@ def create_recipe(product_id: int):
         user_logger.log_action(
             current_user,
             module="Recetas",
-            action="Se creó una receta",
+            action=f"Se creó la receta {recipe.nombre_variante} para {product.nombre_producto}",
             success=True,
         )
         flash('Receta creada exitosamente.', 'success')
@@ -506,7 +506,7 @@ def edit_recipe(product_id: int, recipe_id: int):
         user_logger.log_action(
             current_user,
             module="Recetas",
-            action="Se modificó una receta",
+            action=f"Se modificó la receta {recipe.nombre_variante} para {product.nombre_producto}",
             success=True,
         )
         flash('Receta modificada exitosamente.', 'success')
@@ -536,7 +536,7 @@ def delete_recipe(recipe_id: int):
         user_logger.log_action(
             current_user,
             module="Recetas",
-            action="Se eliminó una receta",
+            action=f"Se eliminó la receta {recipe.nombre_variante}",
             success=True,
         )
         flash('Receta eliminada exitosamente.', 'success')

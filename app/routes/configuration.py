@@ -1,8 +1,9 @@
 import os
 from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
-from flask_login import login_required  # type: ignore
+from flask_login import login_required, current_user  # type: ignore
 from app.decorators import roles_required
 from app.mongo import mongo
+from app import user_logger
 
 configuration_bp = Blueprint('configuration', __name__)
 
@@ -38,8 +39,20 @@ def index():
                 {'$set': config_data},
                 upsert=True
             )
+            user_logger.log_action(
+                current_user,
+                module="Configuración",
+                action=f"Se actualizó la configuración",
+                success=True,
+            )
             flash('Configuración guardada correctamente.', 'success')
         else:
+            user_logger.log_action(
+                current_user,
+                module="Configuración",
+                action=f"Error al actualizar la configuración",
+                success=False,
+            )
             flash('Error: No se pudo conectar a la base de datos.', 'error')
             
         return redirect(url_for('configuration.index'))
