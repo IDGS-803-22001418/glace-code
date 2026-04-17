@@ -3,6 +3,7 @@ from app import db
 from app.models import Product, Insumo, Customer, DetalleVenta, Venta, Merma, User
 from flask_login import login_required # type: ignore
 from app.decorators import roles_required
+from datetime import datetime, timedelta
 
 reports_bp = Blueprint('reports', __name__)
 
@@ -24,10 +25,9 @@ def api_reporte_ventas():
             año = int(semana.split('-')[0])
             semana_num = int(semana.split('-W')[1])
             
-            from datetime import datetime, timedelta
-            # Calcular fecha de inicio de la semana
-            inicio_semana = datetime.strptime(f'{año}-W{semana_num}-1', "%Y-W%W-%w")
-            fin_semana = inicio_semana + timedelta(days=6)
+            # Calcular fecha de inicio de la semana usando ISO calendar
+            inicio_semana = datetime.fromisocalendar(año, semana_num, 1)
+            fin_semana = inicio_semana + timedelta(days=7)
             
             # Consulta corregida
             resultados = db.session.query(
@@ -43,7 +43,7 @@ def api_reporte_ventas():
             ).outerjoin(User, User.id == Customer.user_id
             ).filter(
                 Venta.fecha_hora >= inicio_semana,
-                Venta.fecha_hora <= fin_semana,
+                Venta.fecha_hora < fin_semana,
                 Venta.estado != 'Cancelado'
             ).all()
             
@@ -147,18 +147,15 @@ def api_reporte_mermas_periodo():
             semana = request.args.get('semana')
             # Formato: "2026-W14"
             año = int(semana.split('-')[0])
-            semana_num = int(semana.split('-W')[1]) - 1
-            print(año, semana_num)
+            semana_num = int(semana.split('-W')[1])
             
-            # Calcular fecha de inicio y fin de la semana
-            from datetime import datetime, timedelta
-            inicio_semana = datetime.strptime(f'{año}-W{semana_num}-1', "%Y-W%W-%w")
-            fin_semana = inicio_semana + timedelta(days=6)
-            print(inicio_semana, fin_semana)
+            # Calcular fecha de inicio y fin de la semana usando ISO calendar
+            inicio_semana = datetime.fromisocalendar(año, semana_num, 1)
+            fin_semana = inicio_semana + timedelta(days=7)
             
             mermas = Merma.query.filter(
                 Merma.fecha_registro >= inicio_semana,
-                Merma.fecha_registro <= fin_semana,
+                Merma.fecha_registro < fin_semana,
                 Merma.is_active == True
             ).all()
             

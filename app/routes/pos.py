@@ -13,7 +13,7 @@ pos_bp = Blueprint('pos', __name__)
 @roles_required('seller')
 def index():
     productos = Product.query.filter(Product.stock > 0).order_by(Product.categoria, Product.nombre_producto).all()
-    clientes = Customer.query.join(User).order_by(User.nombre_completo).all()
+    clientes = Customer.query.join(User).filter(Customer.is_active == True).order_by(User.nombre_completo).all()
     
     categorias = {}
     for producto in productos:
@@ -50,9 +50,17 @@ def register_sale():
             flash('No hay productos en la venta', 'danger')
             return redirect(url_for('pos.index'))
         
+        # Validar cliente
+        cliente = None
+        if cliente_id and cliente_id != '':
+            cliente = Customer.query.get(int(cliente_id))
+            if not cliente or not cliente.is_active:
+                flash('Cliente no encontrado.', 'danger')
+                return redirect(url_for('pos.index'))
+
         # Crear venta
         nueva_venta = Venta(
-            cliente_id=int(cliente_id) if cliente_id and cliente_id != '' else None,
+            cliente_id=cliente.id if cliente else None,
             metodo_pago=metodo_pago,
             monto_recibido=monto_recibido,
             monto_cambio=monto_cambio,
@@ -78,11 +86,9 @@ def register_sale():
                 producto.stock -= item['cantidad']
         
         # Actualizar puntos del cliente
-        if cliente_id and cliente_id != '':
-            cliente = Customer.query.get(int(cliente_id))
-            if cliente:
-                puntos_ganados = int(total / 10)
-                cliente.puntos_acumulados += puntos_ganados
+        if cliente:
+            puntos_ganados = int(total / 10)
+            cliente.puntos_acumulados += puntos_ganados
         
         db.session.commit()
         

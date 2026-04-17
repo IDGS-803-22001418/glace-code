@@ -49,7 +49,7 @@ def index():
 @roles_required('seller')
 def create_instore():
     products = Product.query.filter_by(is_active=True).order_by(Product.categoria, Product.nombre_producto).all()
-    customers = Customer.query.join(User).order_by(User.nombre_completo).all()
+    customers = Customer.query.join(User).filter(Customer.is_active == True).order_by(User.nombre_completo).all()
     products_json = [
         {
             'id': product.id,
@@ -84,8 +84,8 @@ def create_instore_post():
             return redirect(url_for('orders.create_instore'))
 
         customer = db.session.get(Customer, cliente_id_int)
-        if not customer:
-            flash('Cliente no válido.', 'danger')
+        if not customer or not customer.is_active:
+            flash('Cliente no encontrado o inactivo.', 'danger')
             return redirect(url_for('orders.create_instore'))
 
         items_json = request.form.get('items_json')
@@ -500,8 +500,8 @@ def checkout():
         
         # Check if customer profile exists
         customer = Customer.query.filter_by(user_id=current_user.id).first()
-        if not customer:
-            return jsonify({'ok': False, 'message': 'Perfil de cliente no encontrado.'}), 404
+        if not customer or not customer.is_active:
+            return jsonify({'ok': False, 'message': 'Perfil de cliente no encontrado o inactivo.'}), 404
 
         # Combine items from session cart with customization data from payload
         # Payloads items can have different IDs or same IDs multiple times (usually unique in our cart)
