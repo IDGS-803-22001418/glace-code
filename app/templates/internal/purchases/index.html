@@ -48,6 +48,7 @@
                     <th class="text-left px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">ID Orden</th>
                     <th class="text-left px-4 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Proveedor</th>
                     <th class="text-left px-4 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Fecha</th>
+                    <th class="text-left px-4 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Total</th>
                     <th class="text-center px-4 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Acciones</th>
                 </tr>
             </thead>
@@ -58,7 +59,8 @@
                         <span class="text-sm font-bold text-[#e91e63]">#ORD-{{ '%04d'|format(c.id) }}</span>
                     </td>
                     <td class="px-4 py-4 text-sm font-semibold text-gray-800">{{ c.proveedor_nombre or 'Sin proveedor' }}</td>
-                    <td class="px-4 py-4 text-sm text-gray-600">{{ c.fecha_orden.strftime('%d/%m/%Y') if c.fecha_orden else 'N/A' }}</td>
+                    <td class="px-4 py-4 text-sm text-gray-600">{{ c.fecha_orden }}</td>
+                    <td class="px-4 py-4 text-sm text-gray-600">{{ c.total }}</td>
                     <td class="px-4 py-4 text-center">
                         <div class="flex items-center justify-center space-x-3">
                             <a href="{{ url_for('purchases.ver', id=c.id) }}" class="text-gray-400 hover:text-blue-500 transition" title="Ver detalle">

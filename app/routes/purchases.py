@@ -26,9 +26,17 @@ def index():
         )
     
     pagination = query.order_by(Purchase.id.desc()).paginate(page=page, per_page=10, error_out=False)
+    compras_data = []
+    for c in pagination.items:
+        compras_data.append({
+            'id': c.id,
+            'proveedor_nombre': c.proveedor_nombre,
+            'fecha_orden': c.fecha_orden.strftime('%d/%m/%Y') if c.fecha_orden else 'N/A',
+            'total': c.total,
+        })
     
     return render_template('internal/purchases/index.html', 
-                         compras=pagination.items, 
+                         compras=compras_data, 
                          total=pagination.total, 
                          page=page, 
                          total_pages=pagination.pages, 
