@@ -231,9 +231,6 @@
             fechaElement.innerText = fecha.toLocaleDateString('es-MX');
         }
 
-        totalDestacado.innerText = `$${total.toFixed(2)}`;
-        totalTicket.innerText = `$${total.toFixed(2)}`;
-        document.getElementById('montoTarjeta').innerText = `$${total.toFixed(2)}`;
         calcularCambio();
     }
 
@@ -242,7 +239,7 @@
         for (const item of carrito) {
             subtotal += item.precio * item.cantidad;
         }
-        const total = subtotal;
+        total = subtotal;
         const base = subtotal / 1.16;
         const iva = subtotal - base;
 
