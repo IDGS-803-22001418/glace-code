@@ -49,7 +49,7 @@
 <div class="grid grid-cols-2 gap-6">
     {% if sales %}
     {% for venta in sales %}
-    <div class="bg-white rounded-2xl border border-primary/10 shadow-sm overflow-hidden transition-all hover:shadow-md">
+    <div class="bg-white rounded-2xl border border-primary/10 shadow-sm overflow-hidden transition-all hover:shadow-md flex flex-col">
         <div class="p-6 flex flex-col lg:flex-row gap-6">
             <!-- Order Header Info -->
             <div class="grow flex flex-col md:flex-row gap-6">
@@ -109,7 +109,7 @@
         </div>
 
         <!-- Items Details -->
-        <div class="bg-slate-50/50 border-t border-primary/5 p-6">
+        <div class="bg-slate-50/50 border-t border-primary/5 p-6 flex-1">
             <h4 class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4">Detalles del Pedido</h4>
             <div class="space-y-4">
                 {% for detalle in venta.detalles %}
@@ -190,7 +190,7 @@
                             <path
                                 d="M80-80v-481l280-119v80l200-80v120h320v480H80Zm80-80h640v-320H480v-82l-200 80v-78l-120 53v347Zm280-80h80v-160h-80v160Zm-160 0h80v-160h-80v160Zm320 0h80v-160h-80v160Z" />
                         </svg>
-                        Comnezar Preparación
+                        Comenzar Preparación
                     </span>
                     <div
                         class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
