@@ -21,6 +21,8 @@ def index():
         rfc = request.form.get('rfc')
         direccion_fiscal = request.form.get('direccion_fiscal')
         telefono_contacto = request.form.get('telefono_contacto')
+        capacidad_horas_personalizados = request.form.get('capacidad_horas_personalizados')
+        capacidad_horas_produccion = request.form.get('capacidad_horas_produccion')
         
         if 'logotipo' in request.files:
             file = request.files['logotipo']
@@ -34,7 +36,9 @@ def index():
                 'razon_social': razon_social,
                 'rfc': rfc,
                 'direccion_fiscal': direccion_fiscal,
-                'telefono_contacto': telefono_contacto
+                'telefono_contacto': telefono_contacto,
+                'capacidad_horas_personalizados': capacidad_horas_personalizados,
+                'capacidad_horas_produccion': capacidad_horas_produccion
             }
             config_collection.update_one(
                 {'_id': 'main_config'},

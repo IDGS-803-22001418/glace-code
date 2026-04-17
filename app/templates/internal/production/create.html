@@ -119,6 +119,7 @@
                     <input type="datetime-local" name="fecha_limite" id="fecha_limite"
                         class="block w-full pl-16 py-5 bg-gray-50 border-none rounded-3xl text-gray-600 focus:ring-4 focus:ring-primary/5 transition-all font-medium"
                         required>
+                    <p class="text-[10px] text-gray-400 mt-2 ml-4">Horario permitido: 10:00 AM - 9:00 PM</p>
                 </div>
             </div>
         </div>
@@ -211,6 +212,20 @@
     // Set min datetime to now
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    document.getElementById('fecha_limite').min = now.toISOString().slice(0, 16);
+    const fechaLimiteInput = document.getElementById('fecha_limite');
+    fechaLimiteInput.min = now.toISOString().slice(0, 16);
+
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const val = fechaLimiteInput.value;
+        if (val) {
+            const date = new Date(val);
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            if (hours < 10 || hours > 21 || (hours === 21 && minutes > 0)) {
+                e.preventDefault();
+                alert('La hora límite de producción debe estar entre las 10:00 AM y las 9:00 PM.');
+            }
+        }
+    });
 </script>
 {% endblock %}

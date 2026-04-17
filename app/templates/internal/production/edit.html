@@ -69,10 +69,11 @@
                     <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-gray-300">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-                    <input type="datetime-local" name="fecha_limite"
+                    <input type="datetime-local" name="fecha_limite" id="fecha_limite"
                         value="{{ task.fecha_limite.strftime('%Y-%m-%dT%H:%M') if task.fecha_limite else '' }}"
                         class="block w-full pl-16 py-5 bg-gray-50 border-none rounded-3xl text-gray-600 focus:ring-4 focus:ring-primary/5 transition-all font-medium"
                         required>
+                    <p class="text-[10px] text-gray-400 mt-2 ml-4">Horario permitido: 10:00 AM - 9:00 PM</p>
                 </div>
             </div>
         </div>
@@ -88,4 +89,21 @@
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const val = document.getElementById('fecha_limite').value;
+        if (val) {
+            const date = new Date(val);
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            if (hours < 10 || hours > 21 || (hours === 21 && minutes > 0)) {
+                e.preventDefault();
+                alert('La hora límite de producción debe estar entre las 10:00 AM y las 9:00 PM.');
+            }
+        }
+    });
+</script>
 {% endblock %}

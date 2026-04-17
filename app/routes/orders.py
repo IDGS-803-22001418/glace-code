@@ -3,8 +3,10 @@ from flask import Blueprint, render_template, request, session, redirect, url_fo
 from flask_login import login_required, current_user  # type: ignore
 from app.decorators import roles_required
 from app import db, user_logger
+from app.mongo import mongo
 from app.models import Product, Venta, DetalleVenta, CustomOrder, Customer, User, Recipe, ProductionTask, RecipeDetail, Insumo
 from datetime import datetime, timedelta
+from sqlalchemy import func
 
 orders_bp = Blueprint('orders', __name__)
 
@@ -129,6 +131,51 @@ def create_instore_post():
         if not (10 <= fecha_entrega.hour < 21) and not (fecha_entrega.hour == 21 and fecha_entrega.minute == 0):
             flash('La hora de entrega debe estar dentro de nuestro horario: 10:00 AM a 9:00 PM.', 'danger')
             return redirect(url_for('orders.create_instore'))
+
+        # --- Validación de Capacidad de Pedidos Personalizados ---
+        mongo_db = mongo.db
+        config_collection = mongo_db['configuration'] if mongo_db is not None else None
+        capacidad_diaria_horas = 0.0
+        if config_collection is not None:
+            config = config_collection.find_one({'_id': 'main_config'}) or {}
+            capacidad_diaria_horas = float(config.get('capacidad_horas_personalizados') or 0.0)
+
+        if capacidad_diaria_horas > 0:
+            fecha_busqueda = fecha_entrega.date()
+            # Sumar tiempo de pedidos personalizados existentes en ese día
+            ventas_dia = Venta.query.filter(
+                func.date(Venta.fecha_hora_entrega) == fecha_busqueda,
+                Venta.estado != 'Cancelado'
+            ).all()
+
+            tiempo_ocupado_min = 0
+            for v in ventas_dia:
+                for d in v.detalles:
+                    if d.custom_order:
+                        # Buscar receta de 1 unidad
+                        recipe = Recipe.query.filter_by(product_id=d.producto_id, cantidad_producida=1.0, is_active=True).first()
+                        if recipe:
+                            tiempo_ocupado_min += (recipe.tiempo_estimado_min or 0) * d.cantidad
+
+            # Calcular tiempo del nuevo pedido
+            tiempo_nuevo_min = 0
+            for item in items:
+                p_id = int(item.get('product_id', 0))
+                cant = int(item.get('cantidad', 0))
+                # Buscar receta de 1 unidad
+                recipe = Recipe.query.filter_by(product_id=p_id, cantidad_producida=1.0, is_active=True).first()
+                if recipe:
+                    tiempo_nuevo_min += (recipe.tiempo_estimado_min or 0) * cant
+
+            capacidad_total_min = capacidad_diaria_horas * 60
+            if (tiempo_ocupado_min + tiempo_nuevo_min) > capacidad_total_min:
+                disponible_hrs = max(0, (capacidad_total_min - tiempo_ocupado_min) / 60)
+                flash(
+                    f'Se excedería la capacidad diaria para pedidos personalizados ({capacidad_diaria_horas}h). '
+                    f'Disponible para el {fecha_busqueda}: {disponible_hrs:.2f}h.', 
+                    'danger'
+                )
+                return redirect(url_for('orders.create_instore'))
 
         metodo_pago = request.form.get('metodo_pago')
         if metodo_pago not in ('efectivo', 'tarjeta'):
@@ -534,6 +581,47 @@ def checkout():
                 'ok': False,
                 'message': 'La hora de entrega debe estar dentro de nuestro horario: Lunes a Domingo de 10:00 AM a 9:00 PM.'
             }), 400
+
+        # --- Validación de Capacidad de Pedidos Personalizados ---
+        mongo_db = mongo.db
+        config_collection = mongo_db['configuration'] if mongo_db is not None else None
+        capacidad_diaria_horas = 0.0
+        if config_collection is not None:
+            config = config_collection.find_one({'_id': 'main_config'}) or {}
+            capacidad_diaria_horas = float(config.get('capacidad_horas_personalizados') or 0.0)
+
+        if capacidad_diaria_horas > 0:
+            fecha_busqueda = fecha_entrega.date()
+            # Sumar tiempo de pedidos personalizados existentes en ese día
+            ventas_dia = Venta.query.filter(
+                func.date(Venta.fecha_hora_entrega) == fecha_busqueda,
+                Venta.estado != 'Cancelado'
+            ).all()
+
+            tiempo_ocupado_min = 0
+            for v in ventas_dia:
+                for d in v.detalles:
+                    if d.custom_order:
+                        recipe = Recipe.query.filter_by(product_id=d.producto_id, cantidad_producida=1.0, is_active=True).first()
+                        if recipe:
+                            tiempo_ocupado_min += (recipe.tiempo_estimado_min or 0) * d.cantidad
+
+            # Calcular tiempo del nuevo pedido
+            tiempo_nuevo_min = 0
+            for item in cart_items:
+                p_id = int(item.get('product_id', 0))
+                cant = int(item.get('cantidad', 0))
+                recipe = Recipe.query.filter_by(product_id=p_id, cantidad_producida=1.0, is_active=True).first()
+                if recipe:
+                    tiempo_nuevo_min += (recipe.tiempo_estimado_min or 0) * cant
+
+            capacidad_total_min = capacidad_diaria_horas * 60
+            if (tiempo_ocupado_min + tiempo_nuevo_min) > capacidad_total_min:
+                disponible_hrs = max(0, (capacidad_total_min - tiempo_ocupado_min) / 60)
+                return jsonify({
+                    'ok': False,
+                    'message': f'Lo sentimos, ya no tenemos capacidad de producción para pedidos personalizados el día {fecha_busqueda}. Disponibilidad restante: {disponible_hrs:.2f}h.'
+                }), 400
 
         nueva_venta = Venta(
             cliente_id=customer.id,
