@@ -321,6 +321,10 @@ def create_recipe(product_id: int):
         flash('Debe asignar un nombre a la variante.', 'error')
         return redirect(url_for('products.recipes', product_id=product.id))
 
+    if tiempo_estimado_min < 1:
+        flash('El tiempo estimado debe ser al menos 1 minuto.', 'error')
+        return redirect(url_for('products.recipes', product_id=product.id))
+
     # Validar al menos un ingrediente
     valid_ingredients = [i for i, c, u in zip(insumo_ids, cantidades, unidades) if i and c and u]
     if not valid_ingredients:
@@ -444,6 +448,10 @@ def edit_recipe(product_id: int, recipe_id: int):
 
     if not nombre_variante:
         flash('Debe asignar un nombre a la variante.', 'error')
+        return redirect(url_for('products.recipes', product_id=product.id, recipe_id=recipe.id))
+
+    if tiempo_estimado_min < 1:
+        flash('El tiempo estimado debe ser al menos 1 minuto.', 'error')
         return redirect(url_for('products.recipes', product_id=product.id, recipe_id=recipe.id))
 
     # Validar al menos un ingrediente

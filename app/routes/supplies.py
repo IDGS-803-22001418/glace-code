@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from app import db, user_logger
-from app.models import Insumo, UnidadMedida
+from app.models import Insumo, UnidadMedida, RecipeDetail, Recipe
 from sqlalchemy import or_
 from app.forms import InsumoForm
 from flask_login import login_required, current_user # type: ignore
@@ -100,24 +100,16 @@ def nuevo_insumo():
     # Si es GET o el formulario falló, mostramos la página de registro
     return render_template('internal/supplies/Registrar.html', form=form, unidades=unidades, categorias=categorias)
 
-@supplies_bp.route("/modificar", methods=['GET', 'POST'])
+@supplies_bp.route("/modificar/<int:id>", methods=['GET', 'POST'])
 @login_required
 @roles_required('admin')
-def modificar():
+def modificar(id):
     create_form = InsumoForm()
     unidades = UnidadMedida.query.all()
     create_form.unidad_base_id.choices = [(u.id, f'{u.nombre} ({u.abreviatura})') for u in unidades]
 
-    # Obtenemos el ID de la URL
-    id_url = request.args.get('id')
-
-    # IMPORTANTE: Si no hay ID en la URL, redirigir o mostrar error
-    if not id_url:
-        flash('No se proporcionó un ID válido', 'danger')
-        return redirect(url_for('supplies.index'))
-
     # Buscamos el insumo
-    insumo1 = db.session.query(Insumo).filter(Insumo.id == id_url).first()
+    insumo1 = db.session.query(Insumo).filter(Insumo.id == id).first()
 
     # Si insumo1 es None (no existe), evitamos que truene
     if insumo1 is None:
@@ -177,17 +169,26 @@ def modificar():
 
     return render_template("internal/supplies/Modificar.html", form=create_form, unidades=unidades, conversiones_activas=conversiones_activas, categorias=categorias)
 
-@supplies_bp.route("/eliminar", methods=['GET', 'POST'])
+@supplies_bp.route("/eliminar/<int:id>", methods=['GET', 'POST'])
 @login_required
 @roles_required('admin')
-def eliminar_insumo():
-    id_url = request.args.get('id')
-    
+def eliminar_insumo(id):
     # Buscamos el insumo para mostrar la información en la pantalla de confirmación
-    insumo_del = db.session.query(Insumo).filter(Insumo.id == id_url).first()
+    insumo_del = db.session.query(Insumo).filter(Insumo.id == id).first()
 
     if not insumo_del:
         flash('El insumo no existe', 'danger')
+        return redirect(url_for('supplies.index'))
+
+    # Validación: No se puede eliminar si el insumo está en uso por alguna receta activa
+    recetas_uso = db.session.query(Recipe).join(RecipeDetail).filter(
+        RecipeDetail.insumo_id == id,
+        RecipeDetail.is_active == True,
+        Recipe.is_active == True
+    ).all()
+
+    if recetas_uso:
+        flash(f'No se puede eliminar "{insumo_del.nombre_insumo}" porque está en uso por una receta activa. Por favor, retíralo de las recetas antes de eliminarlo.', 'danger')
         return redirect(url_for('supplies.index'))
 
     if request.method == 'POST':
